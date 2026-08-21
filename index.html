@@ -898,7 +898,7 @@ table.dre-cats tr.dfc-drill:hover td.cat-td{filter:brightness(.96)}
         <div style="font-size:11px;color:var(--cap);margin-top:8px">Fonte: Fechamento Cats Indoor · VENDAS · Jun/26 · valores em milhares</div>
       </div>
     </div>
-    <div class="topic">Histórico de Faturamento: Jan a Jun</div>
+    <div class="topic" id="topic-hist">Histórico de Faturamento</div>
     <div class="cgrid">
       <div class="cc full">
         <div class="chart-header">
@@ -923,7 +923,6 @@ table.dre-cats tr.dfc-drill:hover td.cat-td{filter:brightness(.96)}
     <div class="sec-title">Novos Clientes</div>
     <div class="sec-sub">Captação mensal · faturamento e ticket de novos tutores</div>
     <div class="krow" id="novos-kpis"></div>
-    <div class="note" style="margin-top:8px">ℹ Metodologia (alinhamento Bernardo, jul/26): "Novos Clientes" segue o padrão <strong>Cadastrados no CRM</strong>, consistente em todos os meses. Faturamento de Novos e Ticket Médio de Novo Cliente ainda usam a definição anterior para Jan–Mai (só Jun é medido pela nova régua). Recálculo completo pendente de novos dumps de VENDAS.</div>
     <div class="irow" id="novos-insight"></div>
     <div class="cgrid">
       <div class="cc half" id="cc-novos">
@@ -1054,7 +1053,7 @@ table.dre-cats tr.dfc-drill:hover td.cat-td{filter:brightness(.96)}
     <div class="sec-title">Veterinários</div>
     <div class="sec-sub">Comissões, custo de pessoal e eficiência · 2026 vs 2025</div>
     <div class="krow" id="vet-kpis" style="display:grid;grid-template-columns:repeat(3,1fr)"></div>
-    <div class="topic">Comissão por Profissional (Jun/26)</div>
+    <div class="topic" id="topic-vet-comissao">Comissão por Profissional</div>
     <div class="cgrid">
       <div class="cc full">
         <div class="chart-header"><span class="chart-title">Ranking de comissão por veterinário (Top 12)</span></div>
@@ -2275,12 +2274,24 @@ function renderFat(tid){
 
   // Chart: histórico 4 anos com toggles
   window._lastFatTid = tid;
+  {
+    const th = document.getElementById("topic-hist");
+    if(th){
+      const hm = (baseMs && baseMs.length) ? baseMs : D.M26;
+      th.textContent = "Histórico de Faturamento" + (hm.length ? " · " + (hm.length>1 ? hm[0]+" a "+hm[hm.length-1] : hm[0]) : "");
+    }
+  }
   const FH = window.FAT_HIST_SHOW || {2023:true,2024:true,2025:true};
-  const m5lbl=["Jan","Fev","Mar","Abr","Mai"].slice(0,D.M26.length);
-  const h26arr=D.M26.map(m=>D.fat26[m]?.bruto||0);
-  const h25arr=["Jan/25","Fev/25","Mar/25","Abr/25","Mai/25"].slice(0,D.M26.length).map(m=>D.fat25[m]?.bruto||0);
-  const h24arr=D.fat24.slice(0,D.M26.length);
-  const h23arr=D.fat23.slice(0,D.M26.length);
+  // Segue o período selecionado (baseMs). Antes usava D.M26 inteiro e ignorava o
+  // filtro; e os rótulos eram uma lista fixa Jan..Mai, que ficava errada a partir
+  // do 6º mês. Agora tudo deriva dos meses realmente selecionados.
+  const histMs = (baseMs && baseMs.length) ? baseMs : D.M26;
+  const idxDoMes = m => D.M26.indexOf(m);   // posição no ano, para casar com fat24/fat23
+  const m5lbl = histMs.map(m=>m.split("/")[0]);
+  const h26arr = histMs.map(m=>D.fat26[m]?.bruto||0);
+  const h25arr = histMs.map(m=>{ const eq=m.replace("/26","/25"); return D.fat25[eq]?.bruto||0; });
+  const h24arr = histMs.map(m=>{ const i=idxDoMes(m); return i>=0?(D.fat24[i]||0):0; });
+  const h23arr = histMs.map(m=>{ const i=idxDoMes(m); return i>=0?(D.fat23[i]||0):0; });
   const histDs=[
     ...(FH[2023]?[{label:"2023",data:h23arr,backgroundColor:"rgba(139,110,47,.35)",borderRadius:3}]:[]),
     ...(FH[2024]?[{label:"2024",data:h24arr,backgroundColor:"rgba(127,176,217,.6)",borderRadius:3}]:[]),
@@ -2310,9 +2321,9 @@ function renderFat(tid){
   }
   // Dia da semana + Turnos (Jun/26, dados das abas de detalhe)
   const topicPad=document.getElementById("topic-padroes");
-  if(topicPad) topicPad.textContent="Padrões Semanais e Horários ("+D.M26[D.M26.length-1]+")";
+  if(topicPad) topicPad.textContent="Padrões Semanais e Horários ("+rotuloDetalhe_()+")";
   const topicHeat=document.getElementById("topic-heat");
-  if(topicHeat) topicHeat.textContent="Heatmap Dia × Turno ("+D.M26[D.M26.length-1]+")";
+  if(topicHeat) topicHeat.textContent="Heatmap Dia × Turno ("+rotuloDetalhe_()+")";
   const dsDiaSem = document.getElementById("diasem-div");
   if(dsDiaSem) dsDiaSem.innerHTML=D.diaSem.map(d=>`<div class='hbar'><div class='hbar-lbl'><span>${d.d}</span><span>${d.p.toFixed(1)}% · ${fmtRk(d.r)}</span></div><div class='hbar-trk'><div class='hbar-fill' style='width:${d.p/25*100}%'></div></div></div>`).join("");
   const dsTurnos = document.getElementById("turnos-div");
@@ -2375,15 +2386,15 @@ function renderNovos(tid){
 function renderTut(tid){
   const s=st(tid), ms=s.months;
   const topicRacas=document.getElementById("topic-racas");
-  if(topicRacas) topicRacas.textContent="Raças mais atendidas ("+D.M26[D.M26.length-1]+")";
+  if(topicRacas) topicRacas.textContent="Raças mais atendidas ("+rotuloDetalhe_()+")";
   const topicPag=document.getElementById("topic-pagtut");
-  if(topicPag) topicPag.textContent="Formas de Pagamento ("+D.M26[D.M26.length-1]+")";
+  if(topicPag) topicPag.textContent="Formas de Pagamento ("+rotuloDetalhe_()+")";
   const chTitleSeg=document.getElementById("chart-title-seg");
-  if(chTitleSeg) chTitleSeg.textContent="Segmentação por Frequência ("+D.M26[D.M26.length-1]+")";
+  if(chTitleSeg) chTitleSeg.textContent="Segmentação por Frequência ("+(D.segMes||rotuloDetalhe_())+")";
   const chTitleGen=document.getElementById("chart-title-gen");
-  if(chTitleGen) chTitleGen.textContent="Gênero dos Tutores ("+D.M26[D.M26.length-1]+")";
+  if(chTitleGen) chTitleGen.textContent="Gênero dos Tutores ("+rotuloDetalhe_()+")";
   const chTitleAnim=document.getElementById("chart-title-anim");
-  if(chTitleAnim) chTitleAnim.textContent="Animais por Tutor ("+D.M26[D.M26.length-1]+")";
+  if(chTitleAnim) chTitleAnim.textContent="Animais por Tutor ("+(D.segMes||rotuloDetalhe_())+")";
   const t26=sumFat(ms,"tutores"), t25=ms.reduce((a,m)=>a+(h25fat(m)?.tutores||0),0);
   const lastMtut=ms[ms.length-1];
   const tutLastM=D.fat26[lastMtut]?.tutores||0;
@@ -2429,9 +2440,9 @@ function renderTut(tid){
 function renderMix(tid){
   const s=st(tid), ms=s.months;
   const subMix=document.getElementById("sub-mix");
-  if(subMix) subMix.textContent="Participação por grupo · "+D.M26[D.M26.length-1];
+  if(subMix) subMix.textContent="Participação por grupo · "+rotuloDetalhe_();
   const topicMixGrupo=document.getElementById("topic-mix-grupo");
-  if(topicMixGrupo) topicMixGrupo.textContent="Receita por Grupo ("+D.M26[D.M26.length-1]+")";
+  if(topicMixGrupo) topicMixGrupo.textContent="Receita por Grupo ("+rotuloDetalhe_()+")";
   const serv26=ms.reduce((a,m)=>a+(D.fat26[m]?.bruto||0)*(D.fat26[m]?.pctServ||0)/100,0);
   const fat26=sumFat(ms,"bruto");
   const grupoLider=D.mix[0];
@@ -2550,13 +2561,168 @@ function renderBairroMap(){
     '<div class="li"><div class="ld" style="background:#0a1a33;border:2px solid #fff"></div>CatsIndoor (Auxiliadora)</div>';
 }
 
+// ═══════════════════════════════════════════════════════════════
+// AGREGAÇÃO DAS SEÇÕES DE DETALHE POR PERÍODO
+// As abas de detalhe guardam um bloco por mês. Ao selecionar vários meses,
+// não basta concatenar: cada campo tem uma regra própria.
+//   Receita / Itens / Vendas / Visitas .... SOMA
+//   Tutores ............................... SOMA de atendidos por mês.
+//        Não é "tutores únicos": quem veio em dois meses conta duas vezes.
+//        Recalcular únicos exigiria a base bruta, que o dashboard não recebe.
+//   % ..................................... recalculado sobre o total do período
+//   Ticket ................................ recalculado (receita ÷ base)
+// ═══════════════════════════════════════════════════════════════
+
+/** Soma linhas de vários meses, agrupando por uma chave, e recalcula % e ticket. */
+function agregarDetalhe_(linhas, meses, opts){
+  const chave = opts.chave;              // função que identifica o grupo
+  const somar = opts.somar || [];        // campos que somam
+  const rotulos = opts.rotulos || [];    // campos de texto (pega o primeiro)
+  const sel = (linhas||[]).filter(l => !l['Mês'] || meses.indexOf(String(l['Mês'])) >= 0);
+  if(!sel.length) return [];
+  const mapa = {};
+  sel.forEach(l => {
+    const k = chave(l);
+    if(!mapa[k]){
+      mapa[k] = {__k:k};
+      rotulos.forEach(c => mapa[k][c] = l[c]);
+      somar.forEach(c => mapa[k][c] = 0);
+    }
+    somar.forEach(c => { const v = Number(l[c]); if(!isNaN(v)) mapa[k][c] += v; });
+  });
+  return Object.keys(mapa).map(k => mapa[k]);
+}
+
+/** Recalcula % de participação sobre o total do período. */
+function recalcPct_(itens, campoValor, campoPct){
+  const tot = itens.reduce((a,x)=>a+(x[campoValor]||0),0) || 1;
+  itens.forEach(x => x[campoPct] = Math.round(x[campoValor]/tot*1000)/10);
+  return itens;
+}
+
+/** Monta as seções de detalhe conforme os meses selecionados e escreve em D. */
+function aplicarDetalhePorPeriodo_(meses){
+  if(!D || !D.detalhePorMes || !meses || !meses.length) return;
+  const F = D.detalhePorMes;
+  const M = meses.filter(m => m.endsWith("/26") || m.endsWith("/25"));
+  if(!M.length) return;
+  D.detalheMeses = M;
+
+  // ---- Mix de Receita ----
+  let mix = agregarDetalhe_(F.mix, M, {chave:l=>l.Grupo, rotulos:['Grupo'],
+    somar:['Receita (R$)','Itens','Tutores','Vendas']});
+  mix = recalcPct_(mix, 'Receita (R$)', '% Participação');
+  D.mix = mix.map(l=>({g:l.Grupo, r:l['Receita (R$)'], p:l['% Participação'],
+    it:l.Itens, tut:l.Tutores, v:l.Vendas})).sort((a,b)=>b.r-a.r);
+
+  // ---- Bairros ----
+  let geo = agregarDetalhe_(F.geo, M, {chave:l=>l.Bairro, rotulos:['Bairro'],
+    somar:['Receita (R$)','Tutores']});
+  geo = recalcPct_(geo, 'Receita (R$)', '% Participação');
+  D.geo = geo.map(l=>({b:l.Bairro, r:l['Receita (R$)'], p:l['% Participação'],
+    tut:l.Tutores, tk: l.Tutores ? Math.round(l['Receita (R$)']/l.Tutores*100)/100 : 0}))
+    .sort((a,b)=>b.r-a.r);
+
+  // ---- Top Tutores (rank recalculado sobre o período) ----
+  let tut = agregarDetalhe_(F.top25, M, {chave:l=>l.Tutor, rotulos:['Tutor','Bairro'],
+    somar:['Receita (R$)','Visitas','Animais']});
+  tut = recalcPct_(tut, 'Receita (R$)', '% Participação');
+  tut.sort((a,b)=>b['Receita (R$)']-a['Receita (R$)']);
+  const totTut = tut.reduce((a,x)=>a+(x['Receita (R$)']||0),0) || 1;
+  let acc = 0;
+  D.top25 = tut.slice(0,25).map((l,i)=>{
+    acc += l['Receita (R$)'];
+    return {rank:i+1, t:l.Tutor, b:l.Bairro||'', r:l['Receita (R$)'], p:l['% Participação'],
+      pa: Math.round(acc/totTut*1000)/10, vis:l.Visitas,
+      an: M.length>1 ? Math.max(1, Math.round(l.Animais/M.length)) : l.Animais,
+      tk: l.Visitas ? Math.round(l['Receita (R$)']/l.Visitas*100)/100 : 0};
+  });
+
+  // ---- Top Produtos ----
+  let prod = agregarDetalhe_(F.topProd, M, {chave:l=>l['Produto/Serviço'],
+    rotulos:['Produto/Serviço','Grupo','Tipo'], somar:['Receita (R$)','Itens']});
+  prod = recalcPct_(prod, 'Receita (R$)', '% Participação');
+  prod.sort((a,b)=>b['Receita (R$)']-a['Receita (R$)']);
+  const totProd = prod.reduce((a,x)=>a+(x['Receita (R$)']||0),0) || 1;
+  let accP = 0;
+  D.topProd = prod.slice(0,30).map((l,i)=>{
+    accP += l['Receita (R$)'];
+    return {rank:i+1, g:l.Grupo, tipo:l.Tipo, n:l['Produto/Serviço'], r:l['Receita (R$)'],
+      p:l['% Participação'], pa:Math.round(accP/totProd*1000)/10, it:l.Itens,
+      tk: l.Itens ? Math.round(l['Receita (R$)']/l.Itens*100)/100 : 0};
+  });
+
+  // ---- Formas de Pagamento ----
+  let pag = agregarDetalhe_(F.pag, M, {chave:l=>l.Forma, rotulos:['Forma'],
+    somar:['Receita (R$)','Vendas']});
+  pag = recalcPct_(pag, 'Receita (R$)', '% Participação');
+  D.pag = pag.map(l=>({f:l.Forma, r:l['Receita (R$)'], p:l['% Participação'], v:l.Vendas,
+    tk: l.Vendas ? Math.round(l['Receita (R$)']/l.Vendas*100)/100 : 0})).sort((a,b)=>b.r-a.r);
+
+  // ---- Heatmap ----
+  let heat = agregarDetalhe_(F.heat, M, {chave:l=>l.Dia+'|'+l.Turno, rotulos:['Dia','Turno'],
+    somar:['Receita (R$)','Itens','Vendas']});
+  heat = recalcPct_(heat, 'Receita (R$)', '% Participação');
+  D.heat = heat.map(l=>({d:l.Dia, t:l.Turno, r:l['Receita (R$)'], p:l['% Participação'],
+    it:l.Itens, v:l.Vendas}));
+
+  // ---- Comissão de veterinários ----
+  let vr = agregarDetalhe_(F.vetRank, M, {chave:l=>l.Veterinário,
+    rotulos:['Veterinário','Categoria'], somar:['Comissão (R$)']});
+  vr = recalcPct_(vr, 'Comissão (R$)', '% do Total');
+  D.vetRank = vr.map(l=>({n:l.Veterinário, cat: l.Categoria==='Terceirizado'?'T':'R',
+    com:l['Comissão (R$)'], p:l['% do Total']})).sort((a,b)=>b.com-a.com);
+  D.vetRankMes = M.length>1 ? (M[0]+" a "+M[M.length-1]) : M[0];
+
+  // ---- Dia da Semana e Turnos ----
+  const bDT = F.diaTurnoBlocos;
+  let dia = agregarDetalhe_(bDT['Dia da Semana'], M, {chave:l=>l.Categoria,
+    rotulos:['Categoria'], somar:['Receita (R$)','Vendas']});
+  dia = recalcPct_(dia, 'Receita (R$)', '% Participação');
+  const ordemDia = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
+  D.diaSem = dia.map(l=>({d:l.Categoria, r:l['Receita (R$)'], p:l['% Participação'], v:l.Vendas,
+    tk: l.Vendas ? Math.round(l['Receita (R$)']/l.Vendas*100)/100 : 0}))
+    .sort((a,b)=>ordemDia.indexOf(a.d)-ordemDia.indexOf(b.d));
+  let tur = agregarDetalhe_(bDT['Turno'], M, {chave:l=>l.Categoria, rotulos:['Categoria'],
+    somar:['Receita (R$)']});
+  tur = recalcPct_(tur, 'Receita (R$)', '% Participação');
+  D.turnos = tur.map(l=>({t:l.Categoria, r:l['Receita (R$)'], p:l['% Participação']}))
+    .sort((a,b)=>b.r-a.r);
+
+  // ---- Perfil: gênero e raças ----
+  const bP = F.perfilBlocos;
+  let gen = agregarDetalhe_(bP['Gênero Tutor'], M, {chave:l=>l.Categoria, rotulos:['Categoria'],
+    somar:['Receita (R$)','Tutores']});
+  gen = recalcPct_(gen, 'Receita (R$)', '% Participação');
+  D.genTutor = gen.map(l=>({g:l.Categoria, r:l['Receita (R$)'], p:l['% Participação'], tut:l.Tutores}))
+    .sort((a,b)=>b.r-a.r);
+  let rac = agregarDetalhe_(bP['Raça'], M, {chave:l=>l.Categoria, rotulos:['Categoria'],
+    somar:['Receita (R$)','Tutores']});
+  rac = recalcPct_(rac, 'Receita (R$)', '% Participação');
+  D.racas = rac.map(l=>({n:l.Categoria, r:l['Receita (R$)'], p:l['% Participação'], tut:l.Tutores}))
+    .sort((a,b)=>b.r-a.r);
+  // Animais por tutor: distribuição não soma entre meses; usa o mês mais recente do período
+  const ultimoM = M[M.length-1];
+  const an = (bP['Animais por Tutor']||[]).filter(l=>String(l['Mês'])===ultimoM);
+  if(an.length) D.animais = an.map(l=>({n:l.Categoria, tut:l.Tutores}));
+
+  // ---- Segmentação: não agrega entre meses (quem é "visita única" em dois meses
+  //      separados vira "recorrente" no acumulado). Usa o mês mais recente. ----
+  const segUlt = (F.seg||[]).filter(l=>String(l['Mês'])===ultimoM);
+  if(segUlt.length){
+    D.seg = segUlt.map(l=>({s:l.Segmento, tut:l.Tutores, pTut:l['% Tutores'],
+      r:l['Receita (R$)'], pR:l['% Receita'], tk:l['Ticket Médio (R$)']}));
+  }
+  D.segMes = ultimoM;
+}
+
 function renderRank(){
   const RN=window.RANK_N, GF=window.RANK_GEO_FILTER;
   const TIPO=window.RANK_TIPO, SRCH=window.RANK_SEARCH;
   const lastM=D.M26[D.M26.length-1];
   const fatTotal=D.fat26[lastM]?.bruto||null;
   const subRank=document.getElementById("sub-rank");
-  if(subRank) subRank.textContent="Top tutores, bairros e produtos · "+lastM;
+  if(subRank) subRank.textContent="Top tutores, bairros e produtos · "+rotuloDetalhe_();
 
   /* helpers */
   function mBar(val,maxVal){
@@ -3071,12 +3237,32 @@ function renderVetMetas(){
   // Jul/26 nunca aparece aqui (não tem realizado a comparar). Meses exibidos seguem o período selecionado;
   // se a seleção não tocar nenhum mês com meta (ex.: "2025 completo"), cai no padrão Abr–Jun.
   const mesParcVet=(D.julProj&&D.julProj.mes)?D.julProj.mes:null;
-  const mesesDisponiveis=VM.meses.filter(m=>m!==mesParcVet);
-  let meses=mesesDisponiveis.filter(m=>ms.includes(m));
-  if(!meses.length) meses=mesesDisponiveis;
+  const idxVM=m=>VM.meses.indexOf(m);
+  // Só faz sentido mostrar meses que já têm Realizado lançado — um mês só com
+  // Cota/Meta/Supermeta rende um gráfico sem barra nenhuma, que parece quebrado.
+  const mesesComReal=VM.meses.filter(m=>{
+    if(m===mesParcVet) return false;
+    const ix=idxVM(m);
+    return VM.vets.some(v=>v.real[ix]!=null);
+  });
+  // Respeita estritamente o filtro de período: se o mês selecionado não tem
+  // resultado lançado, mostra vazio com explicação — nunca dado de outro mês.
+  let meses = mesesComReal.filter(m=>ms.includes(m));
+  if(!meses.length){
+    const gridVazio=document.getElementById("vet-metas-grid");
+    if(gridVazio){ gridVazio.innerHTML='<div style="color:var(--cap);font-size:12.5px;padding:8px 2px">Sem resultado lançado nas metas para o período selecionado.</div>'; gridVazio._built=null; }
+    const atEl=document.getElementById("vet-ating-wrap");
+    if(atEl) atEl.innerHTML="";
+    const insVazio=document.getElementById("vet-metas-insights");
+    if(insVazio) insVazio.innerHTML="";
+    return;
+  }
 
   const topicEl=document.getElementById("topic-vet-metas");
-  if(topicEl) topicEl.textContent="Metas: Cota, Meta e Supermeta · "+(meses.length>1?meses[0]+" a "+meses[meses.length-1]:meses[0]);
+  if(topicEl){
+    const intervalo = meses.length>1 ? meses[0]+" a "+meses[meses.length-1] : meses[0];
+    topicEl.textContent = "Metas: Cota, Meta e Supermeta · " + intervalo;
+  }
 
   const corTier=(real,cota,meta,super_)=>{
     if(real==null) return "rgba(213,229,216,.25)";
@@ -3176,6 +3362,22 @@ function renderVetMetas(){
 
 function renderVetRank(){
   const rk=D.vetRank.slice(0,12);
+  {
+    const th=document.getElementById("topic-vet-comissao");
+    if(th) th.textContent = "Comissão por Profissional" + (D.vetRankMes ? " ("+D.vetRankMes+")" : "");
+  }
+  // Comissão vem do financeiro; se a DRE do mês não foi lançada, não há dado.
+  // Explica em vez de deixar um gráfico em branco.
+  if(!rk.length){
+    const cv=document.getElementById("ch-vetrank");
+    if(cv && cv.parentElement) cv.parentElement.innerHTML =
+      '<div style="color:var(--cap);font-size:12.5px;padding:16px 2px">Sem dados de comissão para ' +
+      (D.vetRankMes||"o período selecionado") +
+      '. Esse indicador depende do lançamento financeiro do mês.</div>';
+    const tv=document.getElementById("vetrank-table");
+    if(tv) tv.innerHTML="";
+    return;
+  }
   mkChart("ch-vetrank",{type:"bar",data:{labels:rk.map(x=>x.n.length>28?x.n.slice(0,26)+"…":x.n),datasets:[
     {label:"Comissão",data:rk.map(x=>x.com),backgroundColor:rk.map(x=>x.cat==="T"?"rgba(127,176,217,.85)":"rgba(47,143,110,.82)"),borderRadius:3}
   ]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
@@ -3306,9 +3508,18 @@ function renderCharts(tid){
   else if(tid==="vet") renderVet(tid);
 }
 
+/** Rótulo do período usado pelas seções de detalhe (ex.: "Jul/26" ou "Jan/26 a Jul/26"). */
+function rotuloDetalhe_(){
+  const M = (D && D.detalheMeses && D.detalheMeses.length) ? D.detalheMeses : (D ? D.M26 : []);
+  if(!M || !M.length) return "";
+  return M.length > 1 ? M[0] + " a " + M[M.length-1] : M[0];
+}
+
 function renderTab(tid){
   buildFilterBar(tid);
   setChartTheme(tid);
+  // Reconstrói as seções de detalhe conforme o período selecionado, antes de desenhar
+  aplicarDetalhePorPeriodo_(st(tid).months);
   if(tid==="resumo") renderResumo(tid);
   else if(tid==="dfc") renderDFC(tid);
   else if(tid==="fin") renderFinCharts(tid);
@@ -3431,6 +3642,21 @@ function remapDados_(resp){
   // dessas seções é um retrato do mês mais recente, então filtramos por mesNovos.
   const mesDet = out.mesNovos;
   const soMes = (linhas) => (linhas||[]).filter(l => !l['Mês'] || String(l['Mês']) === mesDet);
+  // Guarda TODAS as linhas por mês, para as seções de detalhe poderem seguir o
+  // filtro de período (ver agregarDetalhe_). O snapshot filtrado acima continua
+  // sendo o valor inicial, usado enquanto nenhum período foi escolhido.
+  out.detalhePorMes = {
+    mix:            dados.mixDeReceita.linhas||[],
+    top25:          dados.topTutores.linhas||[],
+    geo:            dados.bairros.linhas||[],
+    topProd:        dados.topProdutos.linhas||[],
+    seg:            dados.segmentacaoTutores.linhas||[],
+    pag:            dados.formasDePagamento.linhas||[],
+    heat:           dados.heatmapDiaXTurno.linhas||[],
+    vetRank:        dados.veterinariosComissao.linhas||[],
+    perfilBlocos:   dados.perfilDosTutores.blocos||{},
+    diaTurnoBlocos: dados.diaDaSemanaETurnos.blocos||{}
+  };
 
   out.mix = soMes(dados.mixDeReceita.linhas).map(l=>({g:l.Grupo, r:l['Receita (R$)'], p:l['% Participação'], it:l.Itens, tut:l.Tutores, v:l.Vendas}));
 
@@ -3441,7 +3667,10 @@ function remapDados_(resp){
   // ---- Bairros + coordenadas ----
   out.geo = soMes(dados.bairros.linhas).map(l=>({b:l.Bairro, r:l['Receita (R$)'], p:l['% Participação'], tut:l.Tutores, tk:l['Ticket Médio (R$)']}));
   out.bairroCoords = {};
-  soMes(dados.bairros.linhas).forEach(l=>{ if(l.Latitude!=null && l.Longitude!=null) out.bairroCoords[l.Bairro]=[l.Latitude,l.Longitude]; });
+  // Coordenada de bairro não muda de mês para mês, e as linhas de meses novos
+  // podem vir sem lat/lon (o arquivo de importação não traz essas colunas).
+  // Por isso varremos TODAS as linhas, não só as do mês filtrado.
+  (dados.bairros.linhas||[]).forEach(l=>{ if(l.Latitude!=null && l.Longitude!=null && !out.bairroCoords[l.Bairro]) out.bairroCoords[l.Bairro]=[l.Latitude,l.Longitude]; });
 
   // ---- Top produtos ----
   out.topProd = soMes(dados.topProdutos.linhas).map(l=>({rank:l['#'], g:l.Grupo, tipo:l.Tipo, n:l['Produto/Serviço'],
@@ -3469,6 +3698,12 @@ function remapDados_(resp){
   out.heat = soMes(dados.heatmapDiaXTurno.linhas).map(l=>({d:l.Dia, t:l.Turno, r:l['Receita (R$)'], p:l['% Participação'], it:l.Itens, v:l.Vendas}));
 
   // ---- Veterinários (comissão) ----
+  // A comissão depende do financeiro, que pode estar atrasado em relação ao
+  // comercial. Em vez de filtrar pelo mês mais recente (e esvaziar a aba quando
+  // o financeiro não fechou), usamos o último mês realmente presente nessa aba.
+  // Comissão respeita o mês de referência. Se o financeiro daquele mês não foi
+  // lançado, a seção fica vazia com explicação — nunca mostra outro mês.
+  out.vetRankMes = mesDet;
   out.vetRank = soMes(dados.veterinariosComissao.linhas).map(l=>({
     n:l.Veterinário, cat: l.Categoria==='Terceirizado' ? 'T' : 'R',
     com:l['Comissão (R$)'], p:l['% do Total']}));
