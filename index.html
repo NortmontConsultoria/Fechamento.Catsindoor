@@ -784,7 +784,8 @@ table.dre-cats tr.dfc-drill:hover td.cat-td{filter:brightness(.96)}
   <div class="sec">
     <div class="sec-title">Resumo Executivo</div>
     <div class="sec-sub" id="sub-resumo">Período selecionado: principais indicadores</div>
-    <div class="topic">Financeiro</div><div class="krow" id="re-fin"></div>
+    <div class="topic">Financeiro</div><div class="note" id="re-aviso-dre" style="display:none"></div>
+    <div class="krow" id="re-fin"></div>
     <div class="topic">Comercial</div><div class="krow" id="re-com"></div>
     <div class="topic">Satisfação / NPS 2025</div><div class="krow" id="re-nps"></div>
     <div class="topic">Síntese Analítica</div>
@@ -816,6 +817,7 @@ table.dre-cats tr.dfc-drill:hover td.cat-td{filter:brightness(.96)}
   <div class="sec">
     <div class="sec-title">Dashboard Financeiro</div>
     <div class="sec-sub">Evolução mensal dos indicadores financeiros · comparativo com 2025</div>
+    <div class="note" id="fin-aviso-dre" style="display:none"></div>
     <div class="krow" id="fin-kpis"></div>
     <div id="fin-margin-wrap" style="margin-top:20px"></div>
     <div class="cgrid" id="fin-charts" style="margin-top:20px"></div>
@@ -1216,8 +1218,29 @@ function spark(vals){
 }
 
 function sumFat(months,key){ return months.reduce((a,m)=>a+(D.fat26[m]?.[key]||0),0); }
-function sumDre26(key,months){ return months.reduce((a,m,i)=>{const idx=D.M26.indexOf(m);return a+((D.dre26[key]||[])[idx]||0);},0); }
-function sumDre25equiv(key,months){ return months.reduce((a,m)=>a+(h25dre(key,m)||0),0); }
+// Devolve null (e não 0) quando NENHUM mês do período tem dado de DRE. Sem isso,
+// um mês fechado só no comercial (DRE ainda não lançada) apareceria como "R$ 0k",
+// dando a impressão de faturamento zero em vez de "sem dado".
+function sumDre26(key,months){
+  const arr = D.dre26[key]||[];
+  let temDado=false, soma=0;
+  months.forEach(m=>{ const idx=D.M26.indexOf(m); const v=arr[idx]; if(v!=null&&v!==""){ temDado=true; soma+=v; } });
+  return temDado ? soma : null;
+}
+function sumDre25equiv(key,months){
+  let temDado=false, soma=0;
+  months.forEach(m=>{ const v=h25dre(key,m); if(v!=null&&v!==""){ temDado=true; soma+=v; } });
+  return temDado ? soma : null;
+}
+/** Meses do período que ainda não têm DRE lançada (usado para avisar na tela). */
+function mesesSemDre_(months){
+  const arr = D.dre26["Receita Bruta"]||[];
+  return months.filter(m=>{
+    if(!m.endsWith("/26")) return false;
+    const idx = D.M26.indexOf(m);
+    return idx>=0 && (arr[idx]==null || arr[idx]==="");
+  });
+}
 
 // ═══════════════════════════════════════════════════════════════
 // TABS
@@ -1436,8 +1459,24 @@ function compSideHTML(label26,val26,label25,val25,fmt=fmtRk){
 // ═══════════════════════════════════════════════════════════════
 // RENDERS
 // ═══════════════════════════════════════════════════════════════
+/** Mostra um aviso quando o período selecionado inclui meses cujo financeiro
+ * (DRE) ainda não foi lançado — evita que "sem dado" seja lido como "zero". */
+function avisarDreFaltante_(idAviso, months){
+  const el = document.getElementById(idAviso);
+  if(!el) return;
+  const faltam = mesesSemDre_(months);
+  if(!faltam.length){ el.style.display = "none"; el.innerHTML = ""; return; }
+  const lista = faltam.join(", ");
+  const plural = faltam.length > 1;
+  el.innerHTML = "\u2139 O financeiro de <strong>" + lista + "</strong> ainda não foi lançado. " +
+    (plural ? "Esses meses não entram" : "Esse mês não entra") +
+    " nos números financeiros abaixo (o comercial e o NPS já estão atualizados).";
+  el.style.display = "";
+}
+
 function renderResumo(tid){
   const s=st(tid), ms=s.months;
+  avisarDreFaltante_("re-aviso-dre", ms);
   const topicTend=document.getElementById("topic-tendencias");
   if(topicTend) topicTend.textContent="Tendências: Jan/26 a "+D.M26[D.M26.length-1];
   const rb26=sumDre26("Receita Bruta",ms);
@@ -2468,26 +2507,47 @@ function renderBairroMap(){
   } else {
     window._bairroLayer.clearLayers();
   }
-  rows.forEach(g=>{
+  // Desenha do MAIOR para o menor: assim os círculos menores ficam por cima e
+  // continuam clicáveis, em vez de serem engolidos pelos grandes.
+  // O raio usa raiz quadrada da intensidade porque o que a vista compara é a
+  // ÁREA do círculo, não o raio — sem isso os maiores ficam desproporcionais.
+  const ordenados = rows.slice().sort((a,b)=>b.r-a.r);
+  ordenados.forEach(g=>{
     const coord=D.bairroCoords[g.b];
-    const inten=g.r/maxR; // 0..1
-    const radius=14+inten*34; // px aparente via circleMarker
-    const alpha=0.25+inten*0.55;
+    if(!coord) return;
+    const inten=g.r/maxR;                       // 0..1
+    const radius=7+Math.sqrt(inten)*15;         // 7..22px (antes 14..48, sobrepunha)
     const cor = inten>0.66? "#b33a3a" : inten>0.33 ? "#e3b569" : "#2f8f6e";
     const marker=L.circleMarker(coord,{
-      radius:radius, color:cor, weight:1, fillColor:cor, fillOpacity:alpha
+      radius:radius, color:"#ffffff", weight:1.5, opacity:.9,
+      fillColor:cor, fillOpacity:.72
     }).addTo(window._bairroLayer);
     marker.bindTooltip(
       `<b>${g.b}</b><br>Receita: ${fmtRk(g.r)} (${g.p.toFixed(1)}%)<br>Tutores: ${g.tut} · Ticket: ${fmtRk(g.tk)}`,
       {direction:'top', sticky:true}
     );
   });
+
+  // Marcador da clínica, para dar referência geográfica ao mapa
+  if(D.clinica && D.clinica.lat && D.clinica.lon){
+    const cl = L.marker([D.clinica.lat, D.clinica.lon], {
+      icon: L.divIcon({
+        className: '',
+        html: '<div style="background:#0a1a33;border:2.5px solid #fff;border-radius:50%;width:16px;height:16px;box-shadow:0 2px 6px rgba(0,0,0,.5)"></div>',
+        iconSize: [16,16], iconAnchor: [8,8]
+      }),
+      zIndexOffset: 1000
+    }).addTo(window._bairroLayer);
+    cl.bindTooltip('<b>CatsIndoor</b><br>'+D.clinica.endereco+'<br><span style="opacity:.7">Localização aproximada</span>',
+      {direction:'top', sticky:true});
+  }
   setTimeout(()=>window._bairroMap.invalidateSize(), 60);
   const legEl=document.getElementById('bairro-map-legend');
   if(legEl) legEl.innerHTML=
     '<div class="li"><div class="ld" style="background:#2f8f6e"></div>Menor receita</div>'+
     '<div class="li"><div class="ld" style="background:#e3b569"></div>Receita média</div>'+
-    '<div class="li"><div class="ld" style="background:#b33a3a"></div>Maior receita · '+rows[0].b+' ('+fmtRk(rows[0].r)+')</div>';
+    '<div class="li"><div class="ld" style="background:#b33a3a"></div>Maior receita · '+rows[0].b+' ('+fmtRk(rows[0].r)+')</div>'+
+    '<div class="li"><div class="ld" style="background:#0a1a33;border:2px solid #fff"></div>CatsIndoor (Auxiliadora)</div>';
 }
 
 function renderRank(){
@@ -2870,6 +2930,7 @@ function renderNPS(){
 // ═══════════════════════════════════════════════════════════════
 function renderFinCharts(tid){
   const s=st(tid), ms=s.months;
+  avisarDreFaltante_("fin-aviso-dre", ms);
   const wrap=document.getElementById("fin-charts");
   const kpiEl = document.getElementById('fin-kpis');
   if(kpiEl){
@@ -3365,44 +3426,50 @@ function remapDados_(resp){
   out.diario = (dados.faturamentoDiario.linhas||[]).map(l=>({d:l.Dia, fat:l['Faturamento (R$)'], meta:l['Meta Diária (R$)']}));
 
   // ---- Mix de receita ----
-  out.mix = (dados.mixDeReceita.linhas||[]).map(l=>({g:l.Grupo, r:l['Receita (R$)'], p:l['% Participação'], it:l.Itens, tut:l.Tutores, v:l.Vendas}));
+  // As abas de detalhe empilham um bloco por mês. Sem filtrar, o dashboard soma
+  // todos os meses juntos (ex.: Jun + Jul dando 211% do faturamento). Cada uma
+  // dessas seções é um retrato do mês mais recente, então filtramos por mesNovos.
+  const mesDet = out.mesNovos;
+  const soMes = (linhas) => (linhas||[]).filter(l => !l['Mês'] || String(l['Mês']) === mesDet);
+
+  out.mix = soMes(dados.mixDeReceita.linhas).map(l=>({g:l.Grupo, r:l['Receita (R$)'], p:l['% Participação'], it:l.Itens, tut:l.Tutores, v:l.Vendas}));
 
   // ---- Top tutores ----
-  out.top25 = (dados.topTutores.linhas||[]).map(l=>({rank:l['#'], t:l.Tutor, b:l.Bairro, r:l['Receita (R$)'],
+  out.top25 = soMes(dados.topTutores.linhas).map(l=>({rank:l['#'], t:l.Tutor, b:l.Bairro, r:l['Receita (R$)'],
     p:l['% Participação'], pa:l['% Acumulado'], vis:l.Visitas, an:l.Animais, tk:l['Ticket/Visita (R$)']}));
 
   // ---- Bairros + coordenadas ----
-  out.geo = (dados.bairros.linhas||[]).map(l=>({b:l.Bairro, r:l['Receita (R$)'], p:l['% Participação'], tut:l.Tutores, tk:l['Ticket Médio (R$)']}));
+  out.geo = soMes(dados.bairros.linhas).map(l=>({b:l.Bairro, r:l['Receita (R$)'], p:l['% Participação'], tut:l.Tutores, tk:l['Ticket Médio (R$)']}));
   out.bairroCoords = {};
-  (dados.bairros.linhas||[]).forEach(l=>{ if(l.Latitude!=null && l.Longitude!=null) out.bairroCoords[l.Bairro]=[l.Latitude,l.Longitude]; });
+  soMes(dados.bairros.linhas).forEach(l=>{ if(l.Latitude!=null && l.Longitude!=null) out.bairroCoords[l.Bairro]=[l.Latitude,l.Longitude]; });
 
   // ---- Top produtos ----
-  out.topProd = (dados.topProdutos.linhas||[]).map(l=>({rank:l['#'], g:l.Grupo, tipo:l.Tipo, n:l['Produto/Serviço'],
+  out.topProd = soMes(dados.topProdutos.linhas).map(l=>({rank:l['#'], g:l.Grupo, tipo:l.Tipo, n:l['Produto/Serviço'],
     r:l['Receita (R$)'], p:l['% Participação'], pa:l['% Acumulado'], it:l.Itens, tk:l['Ticket Médio (R$)']}));
 
   // ---- Segmentação ----
-  out.seg = (dados.segmentacaoTutores.linhas||[]).map(l=>({s:l.Segmento, tut:l.Tutores, pTut:l['% Tutores'],
+  out.seg = soMes(dados.segmentacaoTutores.linhas).map(l=>({s:l.Segmento, tut:l.Tutores, pTut:l['% Tutores'],
     r:l['Receita (R$)'], pR:l['% Receita'], tk:l['Ticket Médio (R$)']}));
 
   // ---- Perfil (blocos: Gênero Tutor / Raça / Animais por Tutor) ----
   const blocos = dados.perfilDosTutores.blocos || {};
-  out.genTutor = (blocos['Gênero Tutor']||[]).map(l=>({g:l.Categoria, r:l['Receita (R$)'], p:l['% Participação'], tut:l.Tutores}));
-  out.racas = (blocos['Raça']||[]).map(l=>({n:l.Categoria, r:l['Receita (R$)'], p:l['% Participação'], tut:l.Tutores}));
-  out.animais = (blocos['Animais por Tutor']||[]).map(l=>({n:l.Categoria, tut:l.Tutores}));
+  out.genTutor = soMes(blocos['Gênero Tutor']).map(l=>({g:l.Categoria, r:l['Receita (R$)'], p:l['% Participação'], tut:l.Tutores}));
+  out.racas = soMes(blocos['Raça']).map(l=>({n:l.Categoria, r:l['Receita (R$)'], p:l['% Participação'], tut:l.Tutores}));
+  out.animais = soMes(blocos['Animais por Tutor']).map(l=>({n:l.Categoria, tut:l.Tutores}));
 
   // ---- Pagamentos ----
-  out.pag = (dados.formasDePagamento.linhas||[]).map(l=>({f:l.Forma, r:l['Receita (R$)'], p:l['% Participação'], v:l.Vendas, tk:l['Ticket Médio (R$)']}));
+  out.pag = soMes(dados.formasDePagamento.linhas).map(l=>({f:l.Forma, r:l['Receita (R$)'], p:l['% Participação'], v:l.Vendas, tk:l['Ticket Médio (R$)']}));
 
   // ---- Dia da semana + Turnos (blocos) ----
   const blocosDT = dados.diaDaSemanaETurnos.blocos || {};
-  out.diaSem = (blocosDT['Dia da Semana']||[]).map(l=>({d:l.Categoria, r:l['Receita (R$)'], p:l['% Participação'], v:l.Vendas, tk:l['Ticket Médio (R$)']}));
-  out.turnos = (blocosDT['Turno']||[]).map(l=>({t:l.Categoria, r:l['Receita (R$)'], p:l['% Participação']}));
+  out.diaSem = soMes(blocosDT['Dia da Semana']).map(l=>({d:l.Categoria, r:l['Receita (R$)'], p:l['% Participação'], v:l.Vendas, tk:l['Ticket Médio (R$)']}));
+  out.turnos = soMes(blocosDT['Turno']).map(l=>({t:l.Categoria, r:l['Receita (R$)'], p:l['% Participação']}));
 
   // ---- Heatmap ----
-  out.heat = (dados.heatmapDiaXTurno.linhas||[]).map(l=>({d:l.Dia, t:l.Turno, r:l['Receita (R$)'], p:l['% Participação'], it:l.Itens, v:l.Vendas}));
+  out.heat = soMes(dados.heatmapDiaXTurno.linhas).map(l=>({d:l.Dia, t:l.Turno, r:l['Receita (R$)'], p:l['% Participação'], it:l.Itens, v:l.Vendas}));
 
   // ---- Veterinários (comissão) ----
-  out.vetRank = (dados.veterinariosComissao.linhas||[]).map(l=>({
+  out.vetRank = soMes(dados.veterinariosComissao.linhas).map(l=>({
     n:l.Veterinário, cat: l.Categoria==='Terceirizado' ? 'T' : 'R',
     com:l['Comissão (R$)'], p:l['% do Total']}));
 
@@ -3428,6 +3495,10 @@ function remapDados_(resp){
   // ---- NPS respostas individuais ----
   out.npsRespostas = (dados.npsRespostasIndividuais.linhas||[]).map(l=>({
     mes:l.Mês, data:l.Data, nome:l.Tutor, bairro:l.Bairro, nota:l.Nota, cls:l.Classificação, coment:l.Comentário}));
+
+  // Endereço da clínica, para dar referência geográfica no mapa de calor.
+  // Coordenada aproximada (não foi geocodificada oficialmente).
+  out.clinica = { endereco: "R. Dom Pedro II, 1211 · Auxiliadora", lat: -30.0215, lon: -51.1935 };
 
   out.geradoEm = resp.geradoEm;
   return out;
