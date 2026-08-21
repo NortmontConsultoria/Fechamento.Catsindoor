@@ -1306,7 +1306,7 @@ function resolverPeriodPresets_(){
     const quick=[{id:'m_last', label:last+(lastParcial?' (parcial)':''), months:[last]}];
     if(lastParcial&&M.length>=2) quick.push({id:'m_prev', label:M[M.length-2], months:[M[M.length-2]]});
     // Mês seguinte em andamento (ex.: Jul/26), com dados só parciais. Sempre a primeira opção, à esquerda de tudo.
-    if(D.julProj) quick.unshift({id:'m_jul', label:'Jul/26 (parcial)', months:['Jul/26']});
+    if(D.julProj && D.julProj.mes) quick.unshift({id:'m_jul', label:D.julProj.mes+' (parcial)', months:[D.julProj.mes]});
     PERIOD_PRESETS.unshift(...quick);
   }
   PERIOD_PRESETS.find(p=>p.id==='u3').months=M.slice(-3);
@@ -1346,7 +1346,10 @@ function buildFilterBar(tid){
 }
 function ctxLabel(months){
   if(!months.length) return "Sem seleção";
-  if(months.length===1) return months[0]==="Jul/26"?"Jul/26 (parcial)":months[0]+((D.fat26[months[0]]&&D.fat26[months[0]].parcial)?" (parcial)":"");
+  if(months.length===1){
+    if(D.julProj && D.julProj.mes && months[0]===D.julProj.mes) return months[0]+" (parcial)";
+    return months[0]+((D.fat26[months[0]]&&D.fat26[months[0]].parcial)?" (parcial)":"");
+  }
   const same26=months.every(m=>m.endsWith("/26"));
   const same25=months.every(m=>m.endsWith("/25"));
   return months[0]+" – "+months[months.length-1]+((same26||same25)?" · "+months.length+" meses":"");
@@ -2141,7 +2144,7 @@ function toggleFatHist(yr){
 
 function renderFat(tid){
   const s=st(tid), ms=s.months;
-  const isJulOnly = ms.length===1 && ms[0]==="Jul/26" && !!D.julProj;
+  const isJulOnly = ms.length===1 && !!D.julProj && D.julProj.mes && ms[0]===D.julProj.mes;
   const baseMs = isJulOnly ? [] : ms;
 
   const fat26=isJulOnly?D.julProj.fatParcial:sumFat(ms,"bruto");
@@ -2161,7 +2164,7 @@ function renderFat(tid){
   // Insight de faturamento, dinâmico ao período selecionado (ms)
   const fatInsightEl=document.getElementById("fat-insight");
   if(isJulOnly){
-    if(fatInsightEl) fatInsightEl.innerHTML=`<div class="editorial"><strong>Julho/26 está em andamento.</strong> Faturado <strong class="st">${fmtRk(D.julProj.fatParcial)}</strong> até ${D.julProj.ateData} (${D.julProj.diasDecorridos} de ${D.julProj.diasNoMes} dias), com ticket médio diário de <strong class="st">${fmtRk(D.julProj.tkDiaFat)}</strong>, projetando <strong class="st up">${fmtRk(D.julProj.fatProjetado)}</strong> para o mês fechado (${D.julProj.vendasParcial} vendas · ${D.julProj.tutoresParcial} tutores até agora, ~${D.julProj.vendasDia}/dia). No mesmo período de Jul/25, o equivalente foi <strong class="st">${fmtRk(D.julProj.fat25ParcialEquiv)}</strong>. Jul/25 fechou em <strong class="st">${fmtRk(D.julProj.fat25Real)}</strong>.</div>`;
+    if(fatInsightEl) fatInsightEl.innerHTML=`<div class="editorial"><strong>${D.julProj.mes} está em andamento.</strong> Faturado <strong class="st">${fmtRk(D.julProj.fatParcial)}</strong> até ${D.julProj.ateData} (${D.julProj.diasDecorridos} de ${D.julProj.diasNoMes} dias), com ticket médio diário de <strong class="st">${fmtRk(D.julProj.tkDiaFat)}</strong>, projetando <strong class="st up">${fmtRk(D.julProj.fatProjetado)}</strong> para o mês fechado (${D.julProj.vendasParcial} vendas · ${D.julProj.tutoresParcial} tutores até agora, ~${D.julProj.vendasDia}/dia). No mesmo período de Jul/25, o equivalente foi <strong class="st">${fmtRk(D.julProj.fat25ParcialEquiv)}</strong>. Jul/25 fechou em <strong class="st">${fmtRk(D.julProj.fat25Real)}</strong>.</div>`;
   } else {
     const melhorMes=ms.reduce((best,m)=>(D.fat26[m]?.bruto||0)>(D.fat26[best]?.bruto||0)?m:best,ms[0]);
     const melhorVal=D.fat26[melhorMes]?.bruto||0;
@@ -2181,8 +2184,10 @@ function renderFat(tid){
   // (b) quando o período é uma TENDÊNCIA de vários meses que termina em Jun/26. NUNCA quando só "Jun/26" está selecionado.
   const showJul = !!D.julProj && (isJulOnly || (ms.length>1 && ms[ms.length-1]===D.M26[D.M26.length-1]));
   // Faturamento/Vendas: 2 categorias extras (parcial + projeção). Ticket: só 1 (parcial; projetar média não é válido).
-  const labelsJul2 = showJul ? [...baseMs,"Jul/26 (parcial)","Jul/26 (projeção)"] : baseMs;
-  const labelsJul1 = showJul ? [...baseMs,"Jul/26 (parcial)"] : baseMs;
+  const mesParc = (D.julProj && D.julProj.mes) ? D.julProj.mes : "";
+  const mesParcAnt = mesParc ? mesParc.replace(/\/(\d\d)$/, function(_,y){ return "/"+String(Number(y)-1).padStart(2,"0"); }) : "";
+  const labelsJul2 = showJul ? [...baseMs,mesParc+" (parcial)",mesParc+" (projeção)"] : baseMs;
+  const labelsJul1 = showJul ? [...baseMs,mesParc+" (parcial)"] : baseMs;
   const padNull2 = arr => showJul ? [...arr,null,null] : arr;
   const padNull1 = arr => showJul ? [...arr,null] : arr;
   const julParcialCol2 = val => showJul ? Array(baseMs.length).fill(null).concat([val,null]) : baseMs.map(()=>null);
@@ -2196,20 +2201,20 @@ function renderFat(tid){
   const ds=[{label:"2026",data:padNull2(d26),backgroundColor:"rgba(213,229,216,.85)",borderColor:C26,borderRadius:4,type:"bar"}];
   if(on) ds.push({label:"2025",data:padNull2(d25),backgroundColor:"rgba(143,214,171,.6)",borderColor:C25,borderRadius:4,type:"bar"});
   if(showJul){
-    ds.push({label:"Jul/26 parcial",data:julParcialCol2(D.julProj.fatParcial),backgroundColor:"rgba(213,229,216,.85)",borderColor:C26,borderRadius:4,type:"bar"});
-    ds.push({label:"Jul/26 projeção",data:julProjCol2(D.julProj.fatProjetado),backgroundColor:"rgba(227,181,105,.5)",borderColor:"#ba7517",borderDash:[4,3],borderWidth:2,borderRadius:4,type:"bar"});
+    ds.push({label:mesParc+" parcial",data:julParcialCol2(D.julProj.fatParcial),backgroundColor:"rgba(213,229,216,.85)",borderColor:C26,borderRadius:4,type:"bar"});
+    ds.push({label:mesParc+" projeção",data:julProjCol2(D.julProj.fatProjetado),backgroundColor:"rgba(227,181,105,.5)",borderColor:"#ba7517",borderDash:[4,3],borderWidth:2,borderRadius:4,type:"bar"});
     if(on){
-      ds.push({label:"Jul/25 parcial (equiv.)",data:julParcialCol2(D.julProj.fat25ParcialEquiv),backgroundColor:"rgba(143,214,171,.6)",borderColor:C25,borderRadius:4,type:"bar"});
-      ds.push({label:"Jul/25 (realizado)",data:julProjCol2(D.julProj.fat25Real),backgroundColor:"rgba(143,214,171,.6)",borderColor:C25,borderRadius:4,type:"bar"});
+      ds.push({label:mesParcAnt+" parcial (equiv.)",data:julParcialCol2(D.julProj.fat25ParcialEquiv),backgroundColor:"rgba(143,214,171,.6)",borderColor:C25,borderRadius:4,type:"bar"});
+      ds.push({label:mesParcAnt+" (realizado)",data:julProjCol2(D.julProj.fat25Real),backgroundColor:"rgba(143,214,171,.6)",borderColor:C25,borderRadius:4,type:"bar"});
     }
   }
   mkChart("ch-fat",{type:"bar",data:{labels:labelsJul2,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:showJul,position:"bottom",labels:{font:{size:9},boxWidth:10}},barValue:{enabled:true,color:LEGCOL,fontSize:10,minVal:1,fmt:v=>fmtRk(v)},tooltip:{callbacks:{
     title:items=>items.length?items[0].label+" · "+items[0].dataset.label:"",
     label:c=>{
-    if(c.dataset.label==="Jul/26 parcial") return [` Realizado até ${D.julProj.ateData}: ${fmtRk(D.julProj.fatParcial)}`,` Ticket médio diário: ${fmtRk(D.julProj.tkDiaFat)} (${D.julProj.diasDecorridos} dias)`];
-    if(c.dataset.label==="Jul/26 projeção") return [` Projeção do mês fechado: ${fmtRk(D.julProj.fatProjetado)}`,` Base: ${fmtRk(D.julProj.tkDiaFat)}/dia × ${D.julProj.diasNoMes} dias`];
-    if(c.dataset.label==="Jul/25 parcial (equiv.)") return [` Equivalente aos primeiros ${D.julProj.diasDecorridos} dias de Jul/25: ${fmtRk(D.julProj.fat25ParcialEquiv)}`,` (mês já fechado, valor calculado pro-rata para comparar com o parcial de 2026)`];
-    if(c.dataset.label==="Jul/25 (realizado)") return [` Jul/25 fechou em: ${fmtRk(D.julProj.fat25Real)}`,` Comparar com a projeção de Jul/26: ${fmtRk(D.julProj.fatProjetado)}`];
+    if(c.dataset.label===mesParc+" parcial") return [` Realizado até ${D.julProj.ateData}: ${fmtRk(D.julProj.fatParcial)}`,` Ticket médio diário: ${fmtRk(D.julProj.tkDiaFat)} (${D.julProj.diasDecorridos} dias)`];
+    if(c.dataset.label===mesParc+" projeção") return [` Projeção do mês fechado: ${fmtRk(D.julProj.fatProjetado)}`,` Base: ${fmtRk(D.julProj.tkDiaFat)}/dia × ${D.julProj.diasNoMes} dias`];
+    if(c.dataset.label===mesParcAnt+" parcial (equiv.)") return [` Equivalente aos primeiros ${D.julProj.diasDecorridos} dias de ${mesParcAnt}: ${fmtRk(D.julProj.fat25ParcialEquiv)}`,` (mês já fechado, valor calculado pro-rata para comparar com o parcial de 2026)`];
+    if(c.dataset.label===mesParcAnt+" (realizado)") return [` ${mesParcAnt} fechou em: ${fmtRk(D.julProj.fat25Real)}`,` Comparar com a projeção de ${mesParc}: ${fmtRk(D.julProj.fatProjetado)}`];
     return " "+fmtRk(c.parsed.y);
   }}}},scales:{y:{ticks:{callback:v=>fmtRk(v)},grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
   if(on) document.getElementById("cs-fat").innerHTML=compSideHTML("2026",fat26,"2025",fat25,fmtRk);
@@ -2219,12 +2224,12 @@ function renderFat(tid){
   const dstk=[{label:"Ticket 2026",data:padNull1(baseMs.map(m=>D.fat26[m]?.tickTutor||null)),borderColor:C26,backgroundColor:"rgba(213,229,216,.16)",fill:true,tension:.35,pointRadius:5,type:"line"}];
   if(ton) dstk.push({label:"Ticket 2025",data:padNull1(baseMs.map(m=>h25fat(m)?.tickTutor||null)),borderColor:C25,borderDash:[4,3],tension:.35,pointRadius:3,type:"line"});
   if(showJul){
-    dstk.push({label:"Jul/26 parcial",data:julCol1(D.julProj.tkTutorParcial),borderColor:C26,backgroundColor:C26,pointRadius:6,pointStyle:"rectRot",showLine:false,type:"line"});
-    if(ton) dstk.push({label:"Jul/25 parcial (equiv.)",data:julCol1(D.julProj.tkTutor25ParcialEquiv),borderColor:C25,backgroundColor:C25,pointRadius:6,pointStyle:"triangle",showLine:false,type:"line"});
+    dstk.push({label:mesParc+" parcial",data:julCol1(D.julProj.tkTutorParcial),borderColor:C26,backgroundColor:C26,pointRadius:6,pointStyle:"rectRot",showLine:false,type:"line"});
+    if(ton) dstk.push({label:mesParcAnt+" parcial (equiv.)",data:julCol1(D.julProj.tkTutor25ParcialEquiv),borderColor:C25,backgroundColor:C25,pointRadius:6,pointStyle:"triangle",showLine:false,type:"line"});
   }
   mkChart("ch-ticket",{type:"line",data:{labels:labelsJul1,datasets:dstk},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:showJul,position:"bottom",labels:{font:{size:9},boxWidth:10}},tooltip:{callbacks:{label:c=>{
-    if(c.dataset.label==="Jul/26 parcial") return [` Ticket médio parcial: ${fmtRk(D.julProj.tkTutorParcial)}`,` Realizado até ${D.julProj.ateData}: ${fmtRk(D.julProj.fatParcial)} / ${D.julProj.tutoresParcial} tutores`];
-    if(c.dataset.label==="Jul/25 parcial (equiv.)") return [` Ticket médio equivalente Jul/25: ${fmtRk(D.julProj.tkTutor25ParcialEquiv)}`,` Base pro-rata: ${fmtRk(D.julProj.fat25ParcialEquiv)} / ${D.julProj.tutores25ParcialEquiv} tutores`];
+    if(c.dataset.label===mesParc+" parcial") return [` Ticket médio parcial: ${fmtRk(D.julProj.tkTutorParcial)}`,` Realizado até ${D.julProj.ateData}: ${fmtRk(D.julProj.fatParcial)} / ${D.julProj.tutoresParcial} tutores`];
+    if(c.dataset.label===mesParcAnt+" parcial (equiv.)") return [` Ticket médio equivalente ${mesParcAnt}: ${fmtRk(D.julProj.tkTutor25ParcialEquiv)}`,` Base pro-rata: ${fmtRk(D.julProj.fat25ParcialEquiv)} / ${D.julProj.tutores25ParcialEquiv} tutores`];
     return " "+c.dataset.label+": R$ "+(c.parsed.y?Math.round(c.parsed.y).toLocaleString("pt-BR"):"-");
   }}}},scales:{y:{ticks:{callback:v=>"R$ "+v.toFixed(0)},grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
   if(ton) document.getElementById("cs-ticket").innerHTML=compSideHTML("2026",tk26,"2025",tk25,v=>"R$ "+(v?Math.round(v).toLocaleString("pt-BR"):"-"));
@@ -3004,7 +3009,8 @@ function renderVetMetas(){
   const ms=st("vet").months;
   // Jul/26 nunca aparece aqui (não tem realizado a comparar). Meses exibidos seguem o período selecionado;
   // se a seleção não tocar nenhum mês com meta (ex.: "2025 completo"), cai no padrão Abr–Jun.
-  const mesesDisponiveis=VM.meses.filter(m=>m!=="Jul/26");
+  const mesParcVet=(D.julProj&&D.julProj.mes)?D.julProj.mes:null;
+  const mesesDisponiveis=VM.meses.filter(m=>m!==mesParcVet);
   let meses=mesesDisponiveis.filter(m=>ms.includes(m));
   if(!meses.length) meses=mesesDisponiveis;
 
@@ -3310,6 +3316,22 @@ function remapDados_(resp){
     'Ticket médio mesmo mês/25 (equiv. parcial)':'tkTutor25ParcialEquiv'};
   out.julProj = {};
   (dados.julhoParcial.linhas||[]).forEach(l=>{ const k=jlChave[l.Campo]; if(k) out.julProj[k]=l.Valor; });
+  // O parcial só vale se tiver dado E se o mês a que ele se refere ainda NÃO
+  // estiver fechado (ou seja, ainda não apareceu na lista de meses do ano).
+  // Sem isso, o parcial antigo compete com o mês real depois do fechamento.
+  const MABREV = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  if(out.julProj.ateData && out.julProj.fatParcial){
+    const p = String(out.julProj.ateData).split("/");   // dd/MM/aa
+    if(p.length >= 3){
+      out.julProj.mes = MABREV[parseInt(p[1],10)-1] + "/" + p[2];
+      const jaFechou = out.M26.indexOf(out.julProj.mes) >= 0 || out.M25.indexOf(out.julProj.mes) >= 0;
+      if(jaFechou) out.julProj = null;
+    } else {
+      out.julProj = null;
+    }
+  } else {
+    out.julProj = null;
+  }
 
   // ---- DRE (já vem no formato certo: {label:[valores]}) ----
   out.dre26 = dados.dre2026.linhas;
