@@ -37,6 +37,60 @@ const DoughnutPctPlugin={id:'doughnutPct',afterDatasetsDraw(chart,args,opts){
     });
   });
 }};
+/* Contorno tracejado em barras. O Chart.js ignora borderDash em barras (issue
+   aberta desde 2019), então desenhamos por cima: qualquer dataset marcado com
+   _dashed:true recebe um retângulo tracejado no lugar da borda sólida. */
+const DashedBarPlugin={id:'dashedBar',afterDatasetsDraw(chart){
+  const {ctx}=chart;
+  chart.data.datasets.forEach((ds,di)=>{
+    const pc=ds._parcial; if(!pc) return;
+    const xScale=chart.scales.x, yScale=chart.scales.y;
+    if(!xScale||!yScale) return;
+
+    // Centro da categoria (e não da faixa de um dataset): é isso que deixa a
+    // barra centralizada mesmo com o comparativo de 2025 ligado.
+    const xCentro=xScale.getPixelForValue(pc.idx);
+    if(xCentro==null||isNaN(xCentro)) return;
+
+    // Largura: usa a mesma de uma barra normal, para ficar visualmente igual
+    let w=0;
+    const meta=chart.getDatasetMeta(di);
+    for(let k=0;k<meta.data.length;k++){
+      const wk=meta.data[k].getProps(['width'],true).width;
+      if(wk){ w=wk; break; }
+    }
+    if(!w) w=Math.max(12,(xScale.width/Math.max(1,chart.data.labels.length))*0.5);
+
+    const left=xCentro-w/2;
+    const yBase=yScale.getPixelForValue(0);
+    const yTopo=yScale.getPixelForValue(pc.proj);
+    const yReal=yScale.getPixelForValue(pc.val);
+
+    ctx.save();
+    // parte cheia: do zero até o já realizado
+    ctx.fillStyle=pc.corSolida||'rgba(47,143,110,.9)';
+    ctx.fillRect(left, yReal, w, yBase-yReal);
+    // contorno tracejado da coluna inteira, até a projeção
+    ctx.setLineDash(pc.dash||[6,4]);
+    ctx.strokeStyle=pc.corBorda||'#7fd9a0';
+    ctx.lineWidth=2;
+    ctx.strokeRect(left, yTopo, w, yBase-yTopo);
+    ctx.restore();
+
+    // Rótulos: o do realizado vai DENTRO da parte cheia (fora, invadia a barra
+    // do mês anterior); o da projeção fica acima do topo tracejado.
+    ctx.save();
+    ctx.font='700 10px sans-serif';
+    ctx.textAlign='center';
+    ctx.fillStyle='#ffffff';
+    ctx.textBaseline='top';
+    if(yBase-yReal>16) ctx.fillText(pc.txtReal, xCentro, yReal+5);
+    ctx.fillStyle=pc.corBorda||'#7fd9a0';
+    ctx.textBaseline='bottom';
+    ctx.fillText(pc.txtProj, xCentro, yTopo-6);
+    ctx.restore();
+  });
+}};
 const BarValuePlugin={id:'barValue',afterDatasetsDraw(chart,args,opts){
   if(!opts||!opts.enabled)return;
   const{ctx}=chart;
@@ -63,7 +117,7 @@ const BarValuePlugin={id:'barValue',afterDatasetsDraw(chart,args,opts){
         ctx.save();
         ctx.fillStyle=opts.color||'#fff';ctx.font='700 '+(opts.fontSize||11)+'px sans-serif';
         ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText(opts.fmt?opts.fmt(val):String(val),el.x,cy);
+        ctx.fillText(opts.fmt?opts.fmt(val,ds.label,i):String(val),el.x,cy);
         ctx.restore();
       });
     });
@@ -92,14 +146,15 @@ const BarValuePlugin={id:'barValue',afterDatasetsDraw(chart,args,opts){
       const meta=chart.getDatasetMeta(di);if(meta.hidden)return;
       meta.data.forEach((el,i)=>{
         const val=ds.data[i];if(val==null||val<(opts.minVal||0))return;
-        (byIndex[i]=byIndex[i]||[]).push({el,val});
+        if(ds._parcial && i===ds._parcial.idx) return;   // rótulo desenhado pelo dashedBar
+        (byIndex[i]=byIndex[i]||[]).push({el,val,dsLabel:ds.label,idx:i});
       });
     });
     Object.keys(byIndex).forEach(i=>{
       const pts=byIndex[i].sort((a,b)=>b.val-a.val); // maior valor primeiro
       const placed=[];
       pts.forEach(p=>{
-        const txt=opts.fmt?opts.fmt(p.val):String(p.val);
+        const txt=opts.fmt?opts.fmt(p.val,p.dsLabel,p.idx):String(p.val);
         const w=ctx.measureText(txt).width;
         let y=p.el.y-3;
         // Se colidir com um rótulo já posicionado (de valor MAIOR, pois processamos em ordem
@@ -118,7 +173,7 @@ const BarValuePlugin={id:'barValue',afterDatasetsDraw(chart,args,opts){
     });
   }
 }};
-document.addEventListener('DOMContentLoaded',()=>Chart.register(DoughnutPctPlugin,BarValuePlugin));
+document.addEventListener('DOMContentLoaded',()=>Chart.register(DoughnutPctPlugin,BarValuePlugin,DashedBarPlugin));
 </script>
 <script>
 // Defaults globais Chart.js: modo apresentação
@@ -1548,7 +1603,7 @@ A CatsIndoor encerrou <strong>${ctxLabel(ms)}</strong> com faturamento de <stron
   mkChart("ch-re-fat",{type:"bar",data:{labels:reAllM,datasets:[
     {label:"2026",data:reFat26,backgroundColor:reAllM.map(m=>ms.includes(m)?"rgba(213,229,216,.9)":"rgba(213,229,216,.28)"),borderRadius:5},
     {label:"2025",data:reFat25,backgroundColor:"rgba(143,214,171,.5)",borderRadius:5}
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:12}}},barValue:{enabled:true,color:LEGCOL,fontSize:10,minVal:1,fmt:v=>fmtRk(v)}},scales:{y:{ticks:{callback:v=>fmtRk(v)},grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:12}}},barValue:{enabled:true,minVal:1,color:LEGCOL,fontSize:10,fmt:v=>fmtRk(v)}},scales:{y:{ticks:{callback:v=>fmtRk(v)},grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
 
   const reLL=D.M26.map((_,i)=>D.dre26["Lucro Líquido"][i]??null);
   mkChart("ch-re-ll",{type:"bar",data:{labels:D.M26,datasets:[{
@@ -2202,7 +2257,23 @@ function renderFat(tid){
   // Insight de faturamento, dinâmico ao período selecionado (ms)
   const fatInsightEl=document.getElementById("fat-insight");
   if(isJulOnly){
-    if(fatInsightEl) fatInsightEl.innerHTML=`<div class="editorial"><strong>${D.julProj.mes} está em andamento.</strong> Faturado <strong class="st">${fmtRk(D.julProj.fatParcial)}</strong> até ${D.julProj.ateData} (${D.julProj.diasDecorridos} de ${D.julProj.diasNoMes} dias), com ticket médio diário de <strong class="st">${fmtRk(D.julProj.tkDiaFat)}</strong>, projetando <strong class="st up">${fmtRk(D.julProj.fatProjetado)}</strong> para o mês fechado (${D.julProj.vendasParcial} vendas · ${D.julProj.tutoresParcial} tutores até agora, ~${D.julProj.vendasDia}/dia). No mesmo período de Jul/25, o equivalente foi <strong class="st">${fmtRk(D.julProj.fat25ParcialEquiv)}</strong>. Jul/25 fechou em <strong class="st">${fmtRk(D.julProj.fat25Real)}</strong>.</div>`;
+    if(fatInsightEl){
+      // Monta o texto só com o que o fechamento parcial trouxe. Vendas, tutores e o
+      // comparativo do ano anterior são opcionais — o parcial pode vir só com faturamento.
+      const jp = D.julProj;
+      let txt = `<strong>${jp.mes} está em andamento.</strong> Faturado <strong class="st">${fmtRk(jp.fatParcial)}</strong> até ${jp.ateData} (${jp.diasDecorridos} de ${jp.diasNoMes} dias), média diária de <strong class="st">${fmtRk(jp.tkDiaFat)}</strong>, projetando <strong class="st">${fmtRk(jp.fatProjetado)}</strong> para o mês fechado`;
+      if(jp.vendasParcial!=null && jp.tutoresParcial!=null)
+        txt += ` (${jp.vendasParcial} vendas · ${jp.tutoresParcial} tutores até agora)`;
+      txt += `.`;
+      // Compara a projeção com o mesmo mês do ano anterior, se esse mês já existe na base
+      const mesAnt = jp.mes.replace(/\/(\d\d)$/, (_,y)=>"/"+String(Number(y)-1).padStart(2,"0"));
+      const fatAnt = D.fat25 && D.fat25[mesAnt] ? D.fat25[mesAnt].bruto : null;
+      if(fatAnt){
+        const dif = (jp.fatProjetado/fatAnt-1)*100;
+        txt += ` ${mesAnt} fechou em <strong class="st">${fmtRk(fatAnt)}</strong>, então a projeção está <strong class="st ${dif>=0?'up':'dn'}">${dif>=0?'+':''}${dif.toFixed(1)}%</strong> em relação ao ano passado.`;
+      }
+      fatInsightEl.innerHTML = `<div class="editorial">${txt}</div>`;
+    }
   } else {
     const melhorMes=ms.reduce((best,m)=>(D.fat26[m]?.bruto||0)>(D.fat26[best]?.bruto||0)?m:best,ms[0]);
     const melhorVal=D.fat26[melhorMes]?.bruto||0;
@@ -2224,35 +2295,49 @@ function renderFat(tid){
   // Faturamento/Vendas: 2 categorias extras (parcial + projeção). Ticket: só 1 (parcial; projetar média não é válido).
   const mesParc = (D.julProj && D.julProj.mes) ? D.julProj.mes : "";
   const mesParcAnt = mesParc ? mesParc.replace(/\/(\d\d)$/, function(_,y){ return "/"+String(Number(y)-1).padStart(2,"0"); }) : "";
-  const labelsJul2 = showJul ? [...baseMs,mesParc+" (parcial)",mesParc+" (projeção)"] : baseMs;
-  const labelsJul1 = showJul ? [...baseMs,mesParc+" (parcial)"] : baseMs;
-  const padNull2 = arr => showJul ? [...arr,null,null] : arr;
-  const padNull1 = arr => showJul ? [...arr,null] : arr;
-  const julParcialCol2 = val => showJul ? Array(baseMs.length).fill(null).concat([val,null]) : baseMs.map(()=>null);
-  const julProjCol2 = val => showJul ? Array(baseMs.length).fill(null).concat([null,val]) : baseMs.map(()=>null);
-  const julCol1 = val => showJul ? Array(baseMs.length).fill(null).concat([val]) : baseMs.map(()=>null);
+  const labelsJul2 = showJul ? [...baseMs,mesParc] : baseMs;
+  const temTicketParc = showJul && D.julProj.tkTutorParcial!=null;
+  const labelsJul1 = temTicketParc ? [...baseMs,mesParc+" (parcial)"] : baseMs;
+  const padNull2 = arr => showJul ? [...arr,null] : arr;
+  const padNull1 = arr => temTicketParc ? [...arr,null] : arr;
+  // Uma coluna só para o mês em andamento: realizado embaixo, projeção empilhada em cima.
+  const julCol2 = val => showJul ? Array(baseMs.length).fill(null).concat([val]) : baseMs.map(()=>null);
+  const julCol1 = val => temTicketParc ? Array(baseMs.length).fill(null).concat([val]) : baseMs.map(()=>null);
 
   // Chart: faturamento
   const d26=baseMs.map(m=>D.fat26[m]?.bruto||null);
   const d25=baseMs.map(m=>h25fat(m)?.bruto||null);
   const on=compOn("fat");
-  const ds=[{label:"2026",data:padNull2(d26),backgroundColor:"rgba(213,229,216,.85)",borderColor:C26,borderRadius:4,type:"bar"}];
-  if(on) ds.push({label:"2025",data:padNull2(d25),backgroundColor:"rgba(143,214,171,.6)",borderColor:C25,borderRadius:4,type:"bar"});
+  // Mês em andamento entra na PRÓPRIA série de 2026, com o valor projetado.
+  // Assim ele ocupa a mesma faixa das outras barras de 2026 (fica alinhado, e
+  // centralizado quando o comparativo está desligado). O plugin dashedBar desenha
+  // as duas partes dentro dessa mesma coluna: sólida até o realizado, contorno
+  // tracejado até a projeção.
+  const ds=[{label:"2026",data:padNull2(d26),backgroundColor:"rgba(213,229,216,.85)",borderColor:C26,borderRadius:4,type:"bar",stack:"a"}];
+  if(on) ds.push({label:"2025",data:padNull2(d25),backgroundColor:"rgba(143,214,171,.6)",borderColor:C25,borderRadius:4,type:"bar",stack:"b"});
   if(showJul){
-    ds.push({label:mesParc+" parcial",data:julParcialCol2(D.julProj.fatParcial),backgroundColor:"rgba(213,229,216,.85)",borderColor:C26,borderRadius:4,type:"bar"});
-    ds.push({label:mesParc+" projeção",data:julProjCol2(D.julProj.fatProjetado),backgroundColor:"rgba(227,181,105,.5)",borderColor:"#ba7517",borderDash:[4,3],borderWidth:2,borderRadius:4,type:"bar"});
-    if(on){
-      ds.push({label:mesParcAnt+" parcial (equiv.)",data:julParcialCol2(D.julProj.fat25ParcialEquiv),backgroundColor:"rgba(143,214,171,.6)",borderColor:C25,borderRadius:4,type:"bar"});
-      ds.push({label:mesParcAnt+" (realizado)",data:julProjCol2(D.julProj.fat25Real),backgroundColor:"rgba(143,214,171,.6)",borderColor:C25,borderRadius:4,type:"bar"});
-    }
+    // Nenhum dataset tem valor nessa categoria: a barra inteira é desenhada pelo
+    // plugin, centralizada. Assim ela não fica presa à faixa do dataset 2026.
+    ds[0]._parcial = {
+      idx: baseMs.length,                       // posição do mês em andamento
+      val: D.julProj.fatParcial,                // até onde já realizou
+      proj: D.julProj.fatProjetado,
+      txtReal: fmtRk(D.julProj.fatParcial),
+      txtProj: fmtRk(D.julProj.fatProjetado),
+      corSolida: "rgba(47,143,110,.9)",
+      corBorda: "#7fd9a0",
+      dash: [6,4]
+    };
   }
   mkChart("ch-fat",{type:"bar",data:{labels:labelsJul2,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:showJul,position:"bottom",labels:{font:{size:9},boxWidth:10}},barValue:{enabled:true,color:LEGCOL,fontSize:10,minVal:1,fmt:v=>fmtRk(v)},tooltip:{callbacks:{
-    title:items=>items.length?items[0].label+" · "+items[0].dataset.label:"",
+    title:items=>{ if(!items.length) return ""; if(showJul && items[0].label===mesParc) return mesParc+" (em andamento)"; return items[0].label+" · "+items[0].dataset.label; },
     label:c=>{
-    if(c.dataset.label===mesParc+" parcial") return [` Realizado até ${D.julProj.ateData}: ${fmtRk(D.julProj.fatParcial)}`,` Ticket médio diário: ${fmtRk(D.julProj.tkDiaFat)} (${D.julProj.diasDecorridos} dias)`];
-    if(c.dataset.label===mesParc+" projeção") return [` Projeção do mês fechado: ${fmtRk(D.julProj.fatProjetado)}`,` Base: ${fmtRk(D.julProj.tkDiaFat)}/dia × ${D.julProj.diasNoMes} dias`];
-    if(c.dataset.label===mesParcAnt+" parcial (equiv.)") return [` Equivalente aos primeiros ${D.julProj.diasDecorridos} dias de ${mesParcAnt}: ${fmtRk(D.julProj.fat25ParcialEquiv)}`,` (mês já fechado, valor calculado pro-rata para comparar com o parcial de 2026)`];
-    if(c.dataset.label===mesParcAnt+" (realizado)") return [` ${mesParcAnt} fechou em: ${fmtRk(D.julProj.fat25Real)}`,` Comparar com a projeção de ${mesParc}: ${fmtRk(D.julProj.fatProjetado)}`];
+    // O mês em andamento vive dentro da série 2026, então identificamos pelo rótulo do eixo
+    if(showJul && c.label===mesParc) return [
+      ` Realizado até ${D.julProj.ateData}: ${fmtRk(D.julProj.fatParcial)}`,
+      ` Média diária: ${fmtRk(D.julProj.tkDiaFat)} em ${D.julProj.diasDecorridos} de ${D.julProj.diasNoMes} dias`,
+      ` Projeção do mês fechado: ${fmtRk(D.julProj.fatProjetado)}`,
+      ` Faltam ${fmtRk(D.julProj.fatProjetado-D.julProj.fatParcial)} para atingir a projeção`];
     return " "+fmtRk(c.parsed.y);
   }}}},scales:{y:{ticks:{callback:v=>fmtRk(v)},grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
   if(on) document.getElementById("cs-fat").innerHTML=compSideHTML("2026",fat26,"2025",fat25,fmtRk);
@@ -2262,10 +2347,14 @@ function renderFat(tid){
   const dstk=[{label:"Ticket 2026",data:padNull1(baseMs.map(m=>D.fat26[m]?.tickTutor||null)),borderColor:C26,backgroundColor:"rgba(213,229,216,.16)",fill:true,tension:.35,pointRadius:5,type:"line"}];
   if(ton) dstk.push({label:"Ticket 2025",data:padNull1(baseMs.map(m=>h25fat(m)?.tickTutor||null)),borderColor:C25,borderDash:[4,3],tension:.35,pointRadius:3,type:"line"});
   if(showJul){
-    dstk.push({label:mesParc+" parcial",data:julCol1(D.julProj.tkTutorParcial),borderColor:C26,backgroundColor:C26,pointRadius:6,pointStyle:"rectRot",showLine:false,type:"line"});
-    if(ton) dstk.push({label:mesParcAnt+" parcial (equiv.)",data:julCol1(D.julProj.tkTutor25ParcialEquiv),borderColor:C25,backgroundColor:C25,pointRadius:6,pointStyle:"triangle",showLine:false,type:"line"});
+    // Só plota se o ticket parcial existir. Quando o fechamento parcial traz apenas
+    // faturamento (sem tutores), esses pontos ficam de fora em vez de virar zero.
+    if(D.julProj.tkTutorParcial!=null)
+      dstk.push({label:mesParc+" parcial",data:julCol1(D.julProj.tkTutorParcial),borderColor:C26,backgroundColor:C26,pointRadius:6,pointStyle:"rectRot",showLine:false,type:"line"});
+    if(ton && D.julProj.tkTutor25ParcialEquiv!=null)
+      dstk.push({label:mesParcAnt+" parcial (equiv.)",data:julCol1(D.julProj.tkTutor25ParcialEquiv),borderColor:C25,backgroundColor:C25,pointRadius:6,pointStyle:"triangle",showLine:false,type:"line"});
   }
-  mkChart("ch-ticket",{type:"line",data:{labels:labelsJul1,datasets:dstk},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:showJul,position:"bottom",labels:{font:{size:9},boxWidth:10}},tooltip:{callbacks:{label:c=>{
+  mkChart("ch-ticket",{type:"line",data:{labels:labelsJul1,datasets:dstk},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:temTicketParc,position:"bottom",labels:{font:{size:9},boxWidth:10}},tooltip:{callbacks:{label:c=>{
     if(c.dataset.label===mesParc+" parcial") return [` Ticket médio parcial: ${fmtRk(D.julProj.tkTutorParcial)}`,` Realizado até ${D.julProj.ateData}: ${fmtRk(D.julProj.fatParcial)} / ${D.julProj.tutoresParcial} tutores`];
     if(c.dataset.label===mesParcAnt+" parcial (equiv.)") return [` Ticket médio equivalente ${mesParcAnt}: ${fmtRk(D.julProj.tkTutor25ParcialEquiv)}`,` Base pro-rata: ${fmtRk(D.julProj.fat25ParcialEquiv)} / ${D.julProj.tutores25ParcialEquiv} tutores`];
     return " "+c.dataset.label+": R$ "+(c.parsed.y?Math.round(c.parsed.y).toLocaleString("pt-BR"):"-");
