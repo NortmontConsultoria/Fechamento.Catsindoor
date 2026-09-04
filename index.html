@@ -1116,27 +1116,6 @@ table.dre-cats tr.dfc-drill:hover td.cat-td{filter:brightness(.96)}
         <div id="vetrank-table" style="margin-top:10px"></div>
       </div>
     </div>
-    <div class="topic" id="topic-vet-metas">Metas: Cota, Meta e Supermeta</div>
-    <div class="cleg" style="margin-bottom:8px">
-      <div class="li"><div class="ld" style="background:#5a6a64"></div>Cota</div>
-      <div class="li"><div class="ld" style="background:#ba7517"></div>Meta</div>
-      <div class="li"><div class="ld" style="background:#1f6b52"></div>Supermeta</div>
-      <div class="li"><div class="ld" style="background:#7fb0d9"></div>Realizado</div>
-    </div>
-    <div class="cgrid" id="vet-metas-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px"></div>
-    <div class="irow" id="vet-metas-insights" style="margin-top:14px"></div>
-    <div class="topic" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <span>Atingimento Mensal (%): Realizado sobre a referência selecionada</span>
-      <div style="display:flex;gap:6px;align-items:center">
-        <span style="font-size:11px;color:var(--cap);margin-right:2px;font-weight:400;text-transform:none;letter-spacing:0">Comparar com:</span>
-        <button class="fh-btn" id="vr-cota" onclick="toggleVetAtingRef('cota')">Cota</button>
-        <button class="fh-btn on" id="vr-meta" onclick="toggleVetAtingRef('meta')">Meta</button>
-        <button class="fh-btn" id="vr-super" onclick="toggleVetAtingRef('super')">Supermeta</button>
-      </div>
-    </div>
-    <div class="cgrid">
-      <div class="cc full" id="vet-ating-wrap"></div>
-    </div>
   </div>
 </div>
 
@@ -2980,7 +2959,6 @@ function renderVet(tid){
   ].join("");
 
   renderVetRank();
-  renderVetMetas();
 }
 
 /* Comissão % RB e composição de Pessoal, exibidos em Financeiro > Resultado */
@@ -3308,145 +3286,6 @@ function renderHeat(){
   });
   html+='</table></div>';
   el.innerHTML=html;
-}
-
-window.VET_ATING_REFS = window.VET_ATING_REFS || {cota:false, meta:true, super:false};
-function toggleVetAtingRef(key){
-  window.VET_ATING_REFS[key]=!window.VET_ATING_REFS[key];
-  const btn=document.getElementById("vr-"+key);
-  if(btn) btn.classList.toggle("on", window.VET_ATING_REFS[key]);
-  renderVetMetas();
-}
-
-function renderVetMetas(){
-  const grid=document.getElementById("vet-metas-grid");
-  if(!grid) return;
-  const VM=D.vetMetas;
-  const ms=st("vet").months;
-  // Jul/26 nunca aparece aqui (não tem realizado a comparar). Meses exibidos seguem o período selecionado;
-  // se a seleção não tocar nenhum mês com meta (ex.: "2025 completo"), cai no padrão Abr–Jun.
-  const mesParcVet=(D.julProj&&D.julProj.mes)?D.julProj.mes:null;
-  const idxVM=m=>VM.meses.indexOf(m);
-  // Só faz sentido mostrar meses que já têm Realizado lançado — um mês só com
-  // Cota/Meta/Supermeta rende um gráfico sem barra nenhuma, que parece quebrado.
-  const mesesComReal=VM.meses.filter(m=>{
-    if(m===mesParcVet) return false;
-    const ix=idxVM(m);
-    return VM.vets.some(v=>v.real[ix]!=null);
-  });
-  // Respeita estritamente o filtro de período: se o mês selecionado não tem
-  // resultado lançado, mostra vazio com explicação — nunca dado de outro mês.
-  let meses = mesesComReal.filter(m=>ms.includes(m));
-  if(!meses.length){
-    const gridVazio=document.getElementById("vet-metas-grid");
-    if(gridVazio){ gridVazio.innerHTML='<div style="color:var(--cap);font-size:12.5px;padding:8px 2px">Sem resultado lançado nas metas para o período selecionado.</div>'; gridVazio._built=null; }
-    const atEl=document.getElementById("vet-ating-wrap");
-    if(atEl) atEl.innerHTML="";
-    const insVazio=document.getElementById("vet-metas-insights");
-    if(insVazio) insVazio.innerHTML="";
-    return;
-  }
-
-  const topicEl=document.getElementById("topic-vet-metas");
-  if(topicEl){
-    const intervalo = meses.length>1 ? meses[0]+" a "+meses[meses.length-1] : meses[0];
-    topicEl.textContent = "Metas: Cota, Meta e Supermeta · " + intervalo;
-  }
-
-  const corTier=(real,cota,meta,super_)=>{
-    if(real==null) return "rgba(213,229,216,.25)";
-    if(real>=super_) return "#2f8f6e";
-    if(real>=meta)   return "#7fb0d9";
-    if(real>=cota)   return "#e3b569";
-    return "#b33a3a";
-  };
-  const idxOf=m=>VM.meses.indexOf(m);
-  // Gráfico horizontal por veterinária: barra = Realizado, marcadores = Cota/Meta/Supermeta (sem linhas sobrepostas)
-  const buildKey=VM.vets.length+"|"+meses.join(",");
-  if(grid._built!==buildKey){
-    grid._built=buildKey;
-    grid.innerHTML=VM.vets.map((v,i)=>`<div class="cc"><div class="chart-header"><span class="chart-title">${v.nome}</span></div><div style="position:relative;height:${Math.max(140,meses.length*46)}px"><canvas id="ch-vetmeta-${i}"></canvas></div></div>`).join("");
-  }
-  VM.vets.forEach((v,i)=>{
-    const id="ch-vetmeta-"+i;
-    if(!document.getElementById(id)) return;
-    const idxs=meses.map(idxOf);
-    const real=idxs.map(ix=>v.real[ix]), cota=idxs.map(ix=>v.cota[ix]), meta=idxs.map(ix=>v.meta[ix]), sup=idxs.map(ix=>v.super[ix]);
-    const maxEixo=Math.max(...sup,...real.filter(x=>x!=null))*1.15;
-    mkChart(id,{type:"bar",data:{labels:meses,datasets:[
-      {label:"Realizado",data:real,backgroundColor:meses.map((_,mi)=>corTier(real[mi],cota[mi],meta[mi],sup[mi])),borderRadius:3,barThickness:20,order:4},
-      {label:"Cota",data:cota,type:"line",showLine:false,borderColor:"#5a6a64",backgroundColor:"#5a6a64",pointStyle:"circle",pointRadius:5,pointHoverRadius:6,order:1},
-      {label:"Meta",data:meta,type:"line",showLine:false,borderColor:"#ba7517",backgroundColor:"#ba7517",pointStyle:"rectRot",pointRadius:6,pointHoverRadius:7,order:2},
-      {label:"Supermeta",data:sup,type:"line",showLine:false,borderColor:"#1f6b52",backgroundColor:"#1f6b52",pointStyle:"triangle",pointRadius:7,pointHoverRadius:8,order:3}
-    ]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{
-        if(c.dataset.label==="Realizado") return c.parsed.x==null?"Realizado: aguardando fechamento":"Realizado: "+c.parsed.x;
-        return c.dataset.label+": "+c.parsed.x;
-      }}}},
-      scales:{x:{beginAtZero:true,max:maxEixo,ticks:{stepSize:10,font:{size:11}},grid:{color:"rgba(213,229,216,.09)"}},
-               y:{ticks:{font:{size:12,weight:"600"}},grid:{display:false}}}
-    }});
-  });
-
-  // ── Insights (mês mais recente com dado dentro da seleção) ──
-  const insEl=document.getElementById("vet-metas-insights");
-  const lastClosedIdx=meses.findIndex(m=>VM.vets.every(v=>v.real[idxOf(m)]==null));
-  const idx0=lastClosedIdx===-1?meses.length-1:Math.max(0,lastClosedIdx-1);
-  if(insEl){
-    const mLabel=meses[idx0], ix=idxOf(mLabel);
-    const rows=VM.vets.map(v=>{
-      const r=v.real[ix],m=v.meta[ix],s=v.super[ix],c=v.cota[ix];
-      const status=r==null?"-":r>=s?"supermeta":r>=m?"meta":r>=c?"cota":"abaixo";
-      return {nome:v.nome,r,c,m,s,status};
-    });
-    const abaixo=rows.filter(r=>r.status==="abaixo");
-    const supers=rows.filter(r=>r.status==="supermeta");
-    const txt=`Em <strong>${mLabel}</strong>, `+
-      (supers.length?`<strong class="st up">${supers.map(r=>r.nome.split(" ")[0]).join(", ")}</strong> bateu${supers.length===1?"":"ram"} a supermeta. `:"")+
-      (abaixo.length?`<strong class="st warn">${abaixo.map(r=>r.nome.split(" ")[0]).join(", ")}</strong> ficou${abaixo.length===1?"":"ram"} abaixo da cota mínima. `:"Nenhuma veterinária ficou abaixo da cota mínima. ")+
-      `Meta e Supermeta caem de patamar a partir de Maio/26 (de 27–52 para 27–39), reflexo do replanejamento da equipe.`;
-    insEl.innerHTML=ic(abaixo.length?"warn":"good","Metas por Veterinária: "+mLabel,txt);
-  }
-
-  // Atingimento (%), agrupado por VETERINÁRIA primeiro, meses dentro de cada uma
-  const atingEl=document.getElementById("vet-ating-wrap");
-  if(atingEl){
-    const REF={
-      cota:{label:"Cota",   arr:v=>v.cota,  color:"#5a6a64"},
-      meta:{label:"Meta",   arr:v=>v.meta,  color:"#ba7517"},
-      super:{label:"Supermeta",arr:v=>v.super,color:"#1f6b52"}
-    };
-    const refsAtivos=Object.keys(REF).filter(k=>window.VET_ATING_REFS[k]);
-    const refs=refsAtivos.length?refsAtivos:["meta"]; // nunca fica vazio
-    const mesesFechados=meses.filter(m=>VM.vets.some(v=>v.real[idxOf(m)]!=null));
-    let html="";
-    if(!mesesFechados.length){
-      atingEl.innerHTML=`<div style="color:var(--cap);font-size:12px">Sem meses fechados para exibir atingimento.</div>`;
-    } else {
-      VM.vets.forEach(v=>{
-        html+=`<div style="margin-bottom:18px"><div style="font-size:12px;font-weight:700;color:var(--cap);margin-bottom:8px;letter-spacing:.03em">${v.nome.toUpperCase()}</div>`;
-        mesesFechados.forEach(m=>{
-          const ix=idxOf(m);
-          const r=v.real[ix];
-          if(r==null){
-            html+=`<div class="hbar"><div class="hbar-lbl"><span>${m}</span><span>aguardando fechamento</span></div><div class="hbar-trk"><div class="hbar-fill" style="width:0%;background:rgba(213,229,216,.2)"></div></div></div>`;
-            return;
-          }
-          const cor=corTier(r,v.cota[ix],v.meta[ix],v.super[ix]);
-          refs.forEach(refKey=>{
-            const ref=REF[refKey];
-            const refVal=ref.arr(v)[ix];
-            const pct=refVal?r/refVal*100:null;
-            const fillPct=pct!=null?Math.min(100,pct):0;
-            const mesCol=refs.length>1?`${m} <span style="font-weight:400;color:var(--cap)">(${ref.label})</span>`:m;
-            html+=`<div class="hbar"><div class="hbar-lbl"><span>${mesCol}</span><span>${r} / ${refVal} ${ref.label.toLowerCase()} · <b style="color:${cor}">${pct!=null?pct.toFixed(0)+"%":"-"}</b></span></div><div class="hbar-trk"><div class="hbar-fill" style="width:${fillPct}%;background:${cor}"></div></div></div>`;
-          });
-        });
-        html+="</div>";
-      });
-      atingEl.innerHTML=html;
-    }
-  }
 }
 
 function renderVetRank(){
@@ -3805,7 +3644,8 @@ function remapDados_(resp){
     r25:l['Realizado 2025 (R$)'], p25:l['% Realizado 2025'], meta26:l['Meta 2026 (R$)'], pmeta26:l['% Meta 2026']}));
 
   // ---- Metas veterinárias (já vem no formato certo) ----
-  out.vetMetas = { meses: dados.metasVeterinarias.meses, vets: dados.metasVeterinarias.vets };
+  // Metas por veterinária foram descontinuadas (baixa adesão da equipe).
+  // A aba "Metas Veterinárias" segue na planilha como histórico, mas não é lida aqui.
 
   // ---- NPS (transpõe linha-por-mês em arrays paralelos) ----
   function remapNps(linhas){
