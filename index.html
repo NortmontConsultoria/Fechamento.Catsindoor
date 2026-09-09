@@ -257,7 +257,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--mint-bg);color:var(--i
 .sec{padding:20px 48px}
 .sec-title{font-size:21px;font-weight:800;color:var(--ink);margin-bottom:3px;letter-spacing:-.4px}
 .sec-sub{font-size:11px;color:var(--muted);margin-bottom:18px;letter-spacing:.2px}
-.topic{font-size:10.5px;font-weight:800;color:var(--green);letter-spacing:1.6px;text-transform:uppercase;margin:24px 0 13px;padding-bottom:0;border-bottom:none;opacity:.85}
+.topic{font-size:15px;font-weight:800;color:var(--green);letter-spacing:.6px;text-transform:uppercase;margin:30px 0 15px;padding-bottom:9px;border-bottom:1px solid rgba(10,26,51,.14);opacity:1}
 .topic:first-child{margin-top:0}
 
 /* ── KPI CARDS (glass card, estilo editorial Nortmont) ─────────── */
@@ -429,6 +429,38 @@ table.dre-cats .zero{opacity:.35}
 /* ── FOOTER ─────────────────────────────────────────────────── */
 .footer{background:transparent;color:var(--muted);padding:16px 48px;display:flex;justify-content:space-between;align-items:center;font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-top:24px;border-top:1px solid rgba(10,26,51,.1)}
 
+/* Resumo Executivo: leitura, alerta, "o que mudou" e nota de fonte */
+.re-lead{font-size:15px;line-height:1.6;color:var(--ink);margin:2px 0 20px;max-width:900px}
+body.theme-dark .re-lead,body.theme-green .re-lead{color:var(--mint)}
+.re-lead strong{font-weight:800}
+.re-alerta{border-left:3px solid var(--warn);padding-left:12px;border-radius:0;margin-bottom:14px}
+.re-mudou{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:8px}
+.mud{background:rgba(10,26,51,.03);border:1px solid rgba(10,26,51,.12);border-radius:12px;padding:14px 16px}
+body.theme-dark .mud,body.theme-green .mud{background:rgba(213,229,216,.05);border-color:rgba(213,229,216,.14)}
+.mud .ml{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--cap);margin-bottom:6px}
+.mud .mv{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--ink)}
+body.theme-dark .mud .mv,body.theme-green .mud .mv{color:var(--mint)}
+.mud .md{font-size:12px;font-weight:700;margin-top:4px}
+.mud .ms{font-size:11px;color:var(--cap);margin-top:3px}
+.mud.up .md{color:var(--ok)} .mud.dn .md{color:var(--bad)}
+.fonte{font-size:10.5px;color:var(--cap);margin:6px 0 2px;font-style:italic}
+.re-sint{margin-top:14px;font-size:13.5px;line-height:1.65}
+.re-sint:empty{display:none}
+
+/* Filtros da tabela de respostas de NPS */
+.npsfbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px}
+.npsflabel{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--cap);margin-right:2px}
+.npsf{background:transparent;border:1px solid rgba(213,229,216,.22);color:var(--sage);border-radius:999px;
+      padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+.npsf:hover{border-color:rgba(213,229,216,.5)}
+.npsf.on{background:var(--mint);color:var(--navy);border-color:var(--mint)}
+body.theme-light .npsf{color:var(--ink);border-color:rgba(10,26,51,.18)}
+body.theme-light .npsf.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.npsfbusca{flex:1;min-width:200px;margin-left:8px;background:transparent;border:1px solid rgba(213,229,216,.22);
+      color:inherit;border-radius:999px;padding:6px 14px;font-size:11.5px;font-family:inherit;outline:none}
+.npsfbusca:focus{border-color:rgba(213,229,216,.5)}
+body.theme-light .npsfbusca{border-color:rgba(10,26,51,.18)}
+
 /* ============================================
    TELA DE LOGIN
    ============================================ */
@@ -531,7 +563,7 @@ body{font-size:15px}
 .sec{padding:32px 56px}
 .sec-title{font-size:28px;margin-bottom:6px}
 .sec-sub{font-size:14px;margin-bottom:24px}
-.topic{font-size:12.5px;margin:28px 0 14px;letter-spacing:.6px}
+.topic{font-size:17px;margin:34px 0 16px;letter-spacing:.6px}
 
 /* KPI cards: grid que ocupa 100% da largura */
 .krow{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:22px;margin-bottom:24px}
@@ -669,6 +701,7 @@ body.theme-green #bg-deco{opacity:.06}
 
 /* ── TEMA DARK / GREEN: conteúdo claro sobre fundo escuro ─────────── */
 body.theme-dark .sec-title,body.theme-green .sec-title{color:var(--mint)}
+body.theme-dark .topic,body.theme-green .topic{color:#7fd9a0;border-bottom-color:rgba(213,229,216,.16)}
 body.theme-dark .sec-sub,body.theme-green .sec-sub{color:var(--sage)}
 body.theme-dark .sec[data-pill]::before,body.theme-green .sec[data-pill]::before{color:var(--sage)}
 body.theme-dark .topic,body.theme-green .topic{color:var(--sage);opacity:.9}
@@ -839,12 +872,47 @@ table.dre-cats tr.dfc-drill:hover td.cat-td{filter:brightness(.96)}
   <div class="sec">
     <div class="sec-title">Resumo Executivo</div>
     <div class="sec-sub" id="sub-resumo">Período selecionado: principais indicadores</div>
+    <div class="note re-alerta" id="re-alerta" style="display:none"></div>
+    <div class="re-lead" id="re-lead"></div>
+    <div class="topic" id="topic-mudou">O que mudou</div>
+    <div class="re-mudou" id="re-mudou"></div>
     <div class="topic">Financeiro</div><div class="note" id="re-aviso-dre" style="display:none"></div>
     <div class="krow" id="re-fin"></div>
+    <div class="re-charts" style="margin-top:14px">
+      <div class="cc"><div class="chart-header"><span class="chart-title">Receita, custo e despesa por mês</span></div>
+        <div style="position:relative;height:200px"><canvas id="ch-re-cascata"></canvas></div></div>
+      <div class="cc"><div class="chart-header"><span class="chart-title">Margens sobre a receita</span></div>
+        <div style="position:relative;height:200px"><canvas id="ch-re-margens"></canvas></div></div>
+    </div>
+    <div class="editorial re-sint" id="sint-fin"></div>
+    <div class="fonte" id="fonte-fin"></div>
     <div class="topic">Comercial</div><div class="krow" id="re-com"></div>
-    <div class="topic">Satisfação / NPS 2025</div><div class="krow" id="re-nps"></div>
-    <div class="topic">Síntese Analítica</div>
-    <div class="irow" id="re-insights"></div>
+    <div class="re-charts" style="margin-top:14px">
+      <div class="cc"><div class="chart-header"><span class="chart-title">Faturamento mês a mês: 2026 vs 2025</span></div>
+        <div style="position:relative;height:210px"><canvas id="ch-re-fatcom"></canvas></div></div>
+      <div class="cc"><div class="chart-header"><span class="chart-title">Novos clientes: 2026 vs 2025</span></div>
+        <div style="position:relative;height:210px"><canvas id="ch-re-novos"></canvas></div></div>
+    </div>
+    <div class="editorial re-sint" id="sint-com"></div>
+    <div class="fonte" id="fonte-com"></div>
+    <div class="topic" id="topic-re-nps">Satisfação / NPS</div><div class="krow" id="re-nps"></div>
+    <div class="re-charts" style="margin-top:14px">
+      <div class="cc"><div class="chart-header"><span class="chart-title">NPS mês a mês</span></div>
+        <div style="position:relative;height:180px"><canvas id="ch-re-nps"></canvas></div></div>
+    </div>
+    <div class="editorial re-sint" id="sint-nps"></div>
+    <div class="fonte" id="fonte-nps"></div>
+    <div class="topic">Meta anual 2026</div>
+    <div class="krow" id="re-meta"></div>
+    <div class="note" id="re-meta-frase" style="margin-top:2px"></div>
+    <div class="fonte" id="fonte-meta"></div>
+    <div class="re-charts" style="margin-top:16px">
+      <div class="cc"><div class="chart-header"><span class="chart-title">Progresso da meta anual</span></div>
+        <div style="position:relative;height:190px"><canvas id="ch-re-gauge"></canvas></div></div>
+      <div class="cc"><div class="chart-header"><span class="chart-title">Ritmo mensal: realizado e o que a meta exige</span></div>
+        <div style="position:relative;height:190px"><canvas id="ch-re-ritmo"></canvas></div></div>
+    </div>
+    <div class="irow" id="re-insights" style="display:none"></div>
     <div class="topic" id="topic-tendencias">Tendências: Jan/26 a Mai/26</div>
     <div class="re-charts">
       <div class="cc"><div class="chart-header"><span class="chart-title">Faturamento Bruto: 2026 vs 2025</span></div><div style="position:relative;height:160px"><canvas id="ch-re-fat"></canvas></div></div>
@@ -1365,6 +1433,22 @@ function resolverPeriodPresets_(){
     if(D.julProj && D.julProj.mes) quick.unshift({id:'m_jul', label:D.julProj.mes+' (parcial)', months:[D.julProj.mes]});
     PERIOD_PRESETS.unshift(...quick);
   }
+  // Trimestres do ano corrente, inseridos antes dos presets amplos.
+  // Só entram quando o trimestre tem pelo menos um mês fechado.
+  const tris = [
+    {id:'t1', label:'1º Tri', meses:['Jan/26','Fev/26','Mar/26']},
+    {id:'t2', label:'2º Tri', meses:['Abr/26','Mai/26','Jun/26']},
+    {id:'t3', label:'3º Tri', meses:['Jul/26','Ago/26','Set/26']},
+    {id:'t4', label:'4º Tri', meses:['Out/26','Nov/26','Dez/26']}
+  ];
+  tris.forEach(t=>{
+    if(PERIOD_PRESETS.some(p=>p.id===t.id)) return;
+    const disp = t.meses.filter(m=>M.includes(m));
+    if(!disp.length) return;
+    const iU3 = PERIOD_PRESETS.findIndex(p=>p.id==='u3');
+    const item = {id:t.id, label:t.label, months:disp};
+    if(iU3>=0) PERIOD_PRESETS.splice(iU3, 0, item); else PERIOD_PRESETS.push(item);
+  });
   PERIOD_PRESETS.find(p=>p.id==='u3').months=M.slice(-3);
   PERIOD_PRESETS.find(p=>p.id==='ytd').months=[...M];
   PERIOD_PRESETS.find(p=>p.id==='a25').months=y25;
@@ -1507,6 +1591,79 @@ function avisarDreFaltante_(idAviso, months){
   el.style.display = "";
 }
 
+/** As três maiores variações do último mês do período contra o mês anterior.
+ *  "inv" marca contas onde subir é ruim (custo, despesa): o verde/vermelho
+ *  segue o sentido do negócio, não o sinal aritmético. */
+function variacoesDoMes_(ms){
+  if(!ms || ms.length < 1) return null;
+  const mes = ms[ms.length-1];
+  const iM = D.M26.indexOf(mes);
+  if(iM < 1) return null;
+  const ant = D.M26[iM-1];
+
+  const contas = [
+    {label:"Faturamento",  get:m=>D.fat26[m]?.bruto,     fmt:fmtRk, inv:false},
+    {label:"Tutores atendidos", get:m=>D.fat26[m]?.tutores, fmt:v=>fmtN(v), inv:false},
+    {label:"Novos clientes",get:m=>D.fat26[m]?.novos,     fmt:v=>fmtN(v), inv:false},
+    {label:"Ticket médio por tutor", get:m=>D.fat26[m]?.tickTutor,
+     fmt:v=>"R$ "+Math.round(v).toLocaleString("pt-BR"), inv:false},
+    {label:"Receita bruta (caixa)", get:m=>{const i=D.M26.indexOf(m);const a=D.dre26["Receita Bruta"]||[];return a[i];}, fmt:fmtRk, inv:false},
+    {label:"Custo de venda", get:m=>{const i=D.M26.indexOf(m);const a=D.dre26["Custo de Venda"]||[];return a[i];}, fmt:fmtRk, inv:true},
+    {label:"Despesas operacionais", get:m=>{const i=D.M26.indexOf(m);const a=D.dre26["Despesas Operacionais"]||[];return a[i];}, fmt:fmtRk, inv:true},
+    {label:"Lucro líquido", get:m=>{const i=D.M26.indexOf(m);const a=D.dre26["Lucro Líquido"]||[];return a[i];}, fmt:fmtRk, inv:false},
+  ];
+
+  const itens = [];
+  contas.forEach(c=>{
+    const v = c.get(mes), a = c.get(ant);
+    if(v==null || a==null || v==="" || a==="" || !a) return;
+    const d = (v/a - 1) * 100;
+    if(!isFinite(d)) return;
+    itens.push({label:c.label, valor:c.fmt(v), valorAnt:c.fmt(a), delta:d, inv:c.inv});
+  });
+  itens.sort((x,y)=>Math.abs(y.delta)-Math.abs(x.delta));
+  return {mes, ant, itens: itens.slice(0,3)};
+}
+
+/** Progresso da meta anual: quanto já foi, quanto falta e o ritmo mensal
+ *  necessário nos meses que restam. */
+const MESES_ORD = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+function metaProgresso_(){
+  const meta = (D.metas && D.metas.recBruta) || null;
+  if(!meta) return null;
+  const arr = D.dre26["Receita Bruta"] || [];
+
+  // meses com DRE lançada (é o que soma no realizado)
+  const comDre = D.M26.filter((m,i)=>arr[i]!=null && arr[i]!=="");
+  const real = comDre.reduce((s,m)=>s + arr[D.M26.indexOf(m)], 0);
+
+  // meses que JÁ ACONTECERAM, independentemente de o financeiro estar lançado.
+  // Sem essa distinção, um atraso no lançamento faria o esforço restante parecer
+  // menor do que é (diluído em mais meses).
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth();            // 0..11
+  const mesesDecorridos = mesAtual;            // meses inteiros já fechados no ano
+  const mesesFuturos = Math.max(0, 12 - mesesDecorridos);
+
+  // meses que já ocorreram mas ainda não têm DRE — o valor deles não está no realizado
+  const semDre = D.M26.filter((m,i)=>{
+    const ord = MESES_ORD.indexOf(String(m).split("/")[0]);
+    return ord < mesesDecorridos && (arr[i]==null || arr[i]==="");
+  });
+
+  const cob = meta ? real/meta*100 : null;
+  const falta = Math.max(0, meta - real);
+  const mediaAtual = comDre.length ? real/comDre.length : null;
+  const necessarioMes = mesesFuturos ? falta/mesesFuturos : null;
+  const aumento = (necessarioMes!=null && mediaAtual) ? (necessarioMes/mediaAtual - 1)*100 : null;
+
+  return {meta, real, falta, cob,
+          mesesComDre: comDre.length, comDre,
+          mesesDecorridos, mesesFuturos, semDre,
+          mediaAtual, necessarioMes, aumento};
+}
+
 function renderResumo(tid){
   const s=st(tid), ms=s.months;
   avisarDreFaltante_("re-aviso-dre", ms);
@@ -1570,18 +1727,336 @@ function renderResumo(tid){
   const tipoFat=fat25&&delta(fat26,fat25)>=0?"good":"warn";
 
   const pctLl = rb26 ? ll26/rb26*100 : null;
-  const editorialHTML = `<div class="editorial">
-A CatsIndoor encerrou <strong>${ctxLabel(ms)}</strong> com faturamento de <strong class="st">${fmtRk(fat26)}</strong>${fat25?` (<span class="st ${delta(fat26,fat25)>=0?'up':'dn'}">${delta(fat26,fat25)>=0?'+':''}${delta(fat26,fat25).toFixed(1)}% vs 2025</span>)`:''} e receita bruta de caixa de <strong class="st">${fmtRk(rb26)}</strong>. A margem bruta de <strong class="st">${mb26!=null?fmtP(mb26*100):'-'}</strong> confirma eficiência operacional crescente, mas o resultado operacional de <strong class="st">${fmtRk(ro26)}</strong> foi quase integralmente consumido por investimentos e provisões de <strong class="st warn">${fmtRk(Math.abs(inv26))}</strong>, comprimindo o lucro líquido para <strong class="st ${ll26>=0?'up':'dn'}">${fmtRk(ll26)}</strong>. O gasto com pessoal (folha + vets) atingiu <strong class="st">${fmtRk(gastoPessoas)}</strong>${pctPessoas?` (<strong class="st warn">${fmtP(pctPessoas)}</strong> da receita de caixa)`:''}, o principal alavancador de margem disponível. Novos clientes caíram para <strong class="st warn">${media26novos.toFixed(0)}/mês</strong> vs 53/mês em 2025, mas o ticket médio de conversão subiu de R$ 1.300 para <strong class="st up">R$ 2.309</strong>.
-</div>`;
-  document.getElementById("re-insights").innerHTML=editorialHTML;
+  // Síntese distribuída: cada área recebe a leitura que lhe diz respeito,
+  // logo abaixo dos próprios números.
+  {
+    const put = (id, txt) => { const e=document.getElementById(id); if(e) e.innerHTML = txt || ""; };
+    const dFat = (fat25!=null && fat25) ? delta(fat26,fat25) : null;
+    const setaFat = dFat==null ? "" :
+      ` (<span class="st ${dFat>=0?'up':'dn'}">${dFat>=0?'+':''}${dFat.toFixed(1)}% vs 2025</span>)`;
+
+    // ── Financeiro ──
+    if(rb26!=null){
+      let t = `Receita bruta de caixa de <strong class="st">${fmtRk(rb26)}</strong> no período`;
+      if(mb26!=null) t += `, com margem bruta de <strong class="st">${fmtP(mb26*100)}</strong>`;
+      t += `.`;
+      if(ro26!=null && ll26!=null && ro26 > ll26){
+        t += ` O resultado operacional de <strong class="st">${fmtRk(ro26)}</strong> foi consumido em boa parte por investimentos e provisões, fechando em lucro líquido de <strong class="st">${fmtRk(ll26)}</strong>`;
+        if(pctLl!=null) t += ` (<strong class="st">${fmtP(pctLl)}</strong> da receita)`;
+        t += `.`;
+      } else if(ll26!=null){
+        t += ` Lucro líquido de <strong class="st">${fmtRk(ll26)}</strong>`;
+        if(pctLl!=null) t += ` (<strong class="st">${fmtP(pctLl)}</strong> da receita)`;
+        t += `.`;
+      }
+      if(gastoPessoas){
+        t += ` O gasto com pessoal (folha e veterinários) somou <strong class="st">${fmtRk(gastoPessoas)}</strong>`;
+        if(pctPessoas!=null) t += `, <strong class="st warn">${fmtP(pctPessoas)}</strong> da receita de caixa — o principal alavancador de margem disponível`;
+        t += `.`;
+      }
+      put("sint-fin", t);
+    } else put("sint-fin", "");
+
+    // ── Comercial ──
+    {
+      let t = `Faturamento de <strong class="st">${fmtRk(fat26)}</strong>${setaFat} no período, com <strong class="st">${fmtN(tut26)}</strong> tutores atendidos`;
+      if(tk26) t += ` e ticket médio de <strong class="st">R$ ${Math.round(tk26).toLocaleString("pt-BR")}</strong> por tutor`;
+      t += `.`;
+      if(nov26!=null){
+        const mediaNov = ms.length ? nov26/ms.length : null;
+        t += ` A clínica captou <strong class="st">${fmtN(nov26)} novos clientes</strong>`;
+        if(mediaNov) t += `, média de <strong class="st">${Math.round(mediaNov)}/mês</strong>`;
+        // equivalente de 2025 nos mesmos meses, calculado aqui (não existe pronto)
+        const nov25eq = ms.reduce((s,m)=>{ const h=h25fat(m); return s + ((h&&h.novos)||0); },0);
+        if(nov25eq){
+          t += ` contra ${Math.round(nov25eq/ms.length)}/mês em 2025`;
+        }
+        t += `.`;
+      }
+      put("sint-com", t);
+    }
+
+    // ── Satisfação ──
+    if(n26nps.resp){
+      const nota = n26nps.nota;
+      const zona = nota>=75 ? "zona de excelência" : nota>=50 ? "zona de qualidade" : "zona de atenção";
+      let t = `NPS de <strong class="st">${fmtP(nota)}</strong> no período (${zona}), com <strong class="st">${n26nps.prom} promotores</strong> e <strong class="st ${n26nps.det?'warn':''}">${n26nps.det} detrator${n26nps.det===1?'':'es'}</strong> em ${n26nps.resp} respostas.`;
+      if(n25nps.resp){
+        const dif = nota - n25nps.nota;
+        t += ` No mesmo período de 2025 foram <strong class="st">${fmtP(n25nps.nota)}</strong>, uma variação de <strong class="st ${dif>=0?'up':'dn'}">${dif>=0?'+':''}${dif.toFixed(1)} pontos</strong>.`;
+      }
+      put("sint-nps", t);
+    } else put("sint-nps", "");
+  }
+
+  // ── 1. Frase de leitura, no topo ──────────────────────────────────────────
+  {
+    const el=document.getElementById("re-lead");
+    if(el){
+      const ultimo = ms[ms.length-1];
+      const fatU = D.fat26[ultimo]?.bruto;
+      const todos = D.M26.map(m=>D.fat26[m]?.bruto).filter(v=>v!=null);
+      let posicao = "";
+      if(fatU!=null && todos.length>2){
+        const menor = Math.min(...todos), maior = Math.max(...todos);
+        if(fatU===maior) posicao = ", o melhor mês do ano";
+        else if(fatU===menor) posicao = ", o mês mais fraco do ano";
+      }
+      const npsU = (()=>{ const i=D.M26.indexOf(ultimo); const a=D.nps26.nota; return (i>=0&&i<a.length)?a[i]:null; })();
+      let txt = ms.length===1
+        ? `<strong>${ultimo}</strong> faturou <strong>${fmtRk(fatU)}</strong>${posicao}`
+        : `No período de <strong>${ctxLabel(ms)}</strong>, o faturamento somou <strong>${fmtRk(fat26)}</strong>`;
+      if(ms.length===1 && tut26) txt += `, com <strong>${fmtN(tut26)} tutores</strong> atendidos`;
+      if(npsU!=null && ms.length===1) txt += ` e NPS de <strong>${fmtP(npsU)}</strong>`;
+      txt += ".";
+      el.innerHTML = txt;
+    }
+  }
+
+  // ── 2. Alerta de dado incompleto, em destaque ─────────────────────────────
+  {
+    const el=document.getElementById("re-alerta");
+    if(el){
+      const semDre = mesesSemDre_(ms);
+      if(semDre.length){
+        el.innerHTML = "\u26A0 <strong>Fechamento parcial:</strong> o financeiro de <strong>"+semDre.join(", ")+
+          "</strong> ainda não foi lançado. Os números comerciais e de NPS estão completos; os financeiros abaixo não incluem "+
+          (semDre.length>1?"esses meses":"esse mês")+".";
+        el.style.display="";
+      } else { el.style.display="none"; el.innerHTML=""; }
+    }
+  }
+
+  // ── 3. "O que mudou" ──────────────────────────────────────────────────────
+  {
+    const el=document.getElementById("re-mudou");
+    const tp=document.getElementById("topic-mudou");
+    const mud=variacoesDoMes_(ms);
+    if(el){
+      if(!mud || !mud.itens.length){
+        el.innerHTML=""; if(tp) tp.style.display="none";
+      } else {
+        if(tp){ tp.style.display=""; tp.textContent="O que mudou em "+mud.mes; }
+        el.innerHTML = mud.itens.map(it=>{
+          // em contas invertidas (custo, despesa) subir é ruim
+          const bom = it.inv ? it.delta < 0 : it.delta >= 0;
+          const cls = bom ? "up" : "dn";
+          const seta = it.delta >= 0 ? "\u25B2" : "\u25BC";
+          return `<div class="mud ${cls}"><div class="ml">${it.label}</div>`+
+                 `<div class="mv">${it.valor}</div>`+
+                 `<div class="md">${seta} ${Math.abs(it.delta).toFixed(1)}% vs ${mud.ant}</div>`+
+                 `<div class="ms">${mud.ant}: ${it.valorAnt}</div></div>`;
+        }).join("");
+      }
+    }
+  }
+
+  // ── 4. Meta anual 2026 ────────────────────────────────────────────────────
+  {
+    const el=document.getElementById("re-meta");
+    const fr=document.getElementById("re-meta-frase");
+    const mp=metaProgresso_();
+    if(el){
+      if(!mp){ el.innerHTML=""; if(fr) fr.innerHTML=""; }
+      else {
+        el.innerHTML=[
+          kpi("Meta anual", fmtRk(mp.meta), "", "Receita bruta declarada"),
+          kpi("Realizado", fmtRk(mp.real), "kpi-feat", mp.mesesComDre+" meses com financeiro lançado",
+              `<div class="kdelta ${mp.cob>=(mp.mesesComDre/12*100)?"up":"dn"}">${fmtP(mp.cob)} da meta</div>`),
+          kpi("Falta para a meta", fmtRk(mp.falta), "",
+              mp.semDre.length ? "sem contar "+mp.semDre.join(", ") : mp.mesesFuturos+" meses restantes"),
+          kpi("Ritmo necessário", mp.necessarioMes!=null?fmtRk(mp.necessarioMes):"-", "",
+              mp.mesesFuturos+" meses até dezembro"),
+          kpi("Esforço adicional",
+              mp.aumento!=null ? (mp.aumento>=0?"+":"")+mp.aumento.toFixed(1)+"%" : "-",
+              mp.aumento!=null && mp.aumento>25 ? "risk" : (mp.aumento!=null && mp.aumento>0 ? "warn" : "ok"),
+              mp.mediaAtual!=null ? "sobre a média de "+fmtRk(mp.mediaAtual)+"/mês" : "")
+        ].join("");
+        if(fr){
+          if(mp.falta<=0){
+            fr.innerHTML="A meta anual já foi atingida com o realizado até agora.";
+          } else if(mp.necessarioMes!=null && mp.mediaAtual){
+            const sobe = mp.aumento>=0;
+            let t = `Para bater a meta, a clínica precisa faturar <strong>${fmtRk(mp.necessarioMes)}/mês</strong> `+
+              `nos ${mp.mesesFuturos} meses que ainda faltam no ano` +
+              (sobe
+                ? `, <strong>${fmtP(mp.aumento)}</strong> acima da média mensal realizada até aqui (${fmtRk(mp.mediaAtual)}/mês).`
+                : `, <strong>${fmtP(Math.abs(mp.aumento))}</strong> abaixo da média já realizada (${fmtRk(mp.mediaAtual)}/mês) — o ritmo atual sustenta a meta.`);
+            if(mp.semDre.length){
+              t += ` <span style="opacity:.8">O financeiro de ${mp.semDre.join(" e ")} ainda não foi lançado, então esse faturamento não entra no realizado — a conta tende a melhorar quando entrar.</span>`;
+            }
+            fr.innerHTML = t;
+          } else fr.innerHTML="";
+        }
+      }
+    }
+  }
+
+  // ── 5. Notas de fonte ─────────────────────────────────────────────────────
+  {
+    const setF=(id,txt)=>{const e=document.getElementById(id); if(e) e.textContent=txt;};
+    setF("fonte-fin","Fonte: DRE da planilha Fechamento Cats Indoor · regime de caixa (data de pagamento).");
+    setF("fonte-com","Fonte: relatório Inteligência › Vendas do SimplesVet · regime de vendas (data da venda).");
+    setF("fonte-nps","Fonte: Pesquisa de Satisfação do SimplesVet · uma linha por resposta.");
+    setF("fonte-meta","Fonte: Mapa Orçamentário 2026 definido pela gestão · meta de receita bruta de "+
+      (D.metas&&D.metas.recBruta?fmtRk(D.metas.recBruta):"-")+" para o ano.");
+    const tn=document.getElementById("topic-re-nps");
+    if(tn) tn.textContent = "Satisfação / NPS " + (n26nps.resp ? "2026" : "2025");
+  }
+
+  // ── 6. Gráficos do Resumo ────────────────────────────────────────────────
+  {
+    const mesesFin = D.M26.filter(m=>{
+      const i=D.M26.indexOf(m); const a=D.dre26["Receita Bruta"]||[];
+      return a[i]!=null && a[i]!=="";
+    });
+    const lbl = m=>String(m).split("/")[0];
+    const linhaDre = (k,m)=>{ const i=D.M26.indexOf(m); const a=D.dre26[k]||[]; const v=a[i]; return (v==null||v==="")?null:v; };
+
+    // 6a. Gauge da meta anual
+    const mp = metaProgresso_();
+    if(mp){
+      const feito = Math.min(mp.real, mp.meta);
+      const resta = Math.max(0, mp.meta - mp.real);
+      mkChart("ch-re-gauge",{type:"doughnut",
+        data:{labels:["Realizado","Falta"],datasets:[{data:[feito,resta],
+          backgroundColor:["rgba(47,143,110,.92)","rgba(213,229,216,.16)"],borderWidth:0}]},
+        options:{responsive:true,maintainAspectRatio:false,circumference:180,rotation:270,cutout:"72%",
+          plugins:{legend:{position:"bottom",labels:{font:{size:11},boxWidth:12,color:LEGCOL}},
+            doughnutPct:{enabled:false},
+            tooltip:{callbacks:{label:c=>" "+c.label+": "+fmtRk(c.parsed)+" ("+(c.parsed/mp.meta*100).toFixed(1)+"%)"}}}}});
+    }
+
+    // 6b. Ritmo mensal: o que foi feito por mês e a linha do que a meta exige
+    if(mp && mesesFin.length){
+      // Eixo com o ano inteiro: à esquerda o que já foi realizado, à direita o
+      // que a meta exige. A exigência NÃO é desenhada sobre meses passados —
+      // não faz sentido cobrar um ritmo de um mês que já fechou.
+      const ordUlt = MESES_ORD.indexOf(String(mesesFin[mesesFin.length-1]).split("/")[0]);
+      const futuros = MESES_ORD.slice(12 - mp.mesesFuturos);
+      const eixo = mesesFin.map(lbl).concat(futuros);
+      const realizados = mesesFin.map(m=>linhaDre("Receita Bruta",m)).concat(futuros.map(()=>null));
+      const exigidoArr = mesesFin.map(()=>null).concat(futuros.map(()=>mp.necessarioMes));
+      mkChart("ch-re-ritmo",{type:"bar",
+        data:{labels:eixo,datasets:[
+          {label:"Receita realizada",data:realizados,backgroundColor:"rgba(47,143,110,.85)",borderRadius:4,order:2},
+          {label:"Necessário para a meta ("+fmtRk(mp.necessarioMes)+"/mês)",data:exigidoArr,
+           backgroundColor:"rgba(227,181,105,.28)",borderColor:"#e3b569",borderWidth:1.5,borderRadius:4,order:1}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{position:"bottom",labels:{font:{size:10},boxWidth:12,color:LEGCOL}},
+            barValue:{enabled:true,color:LEGCOL,fontSize:10,minVal:1,fmt:v=>fmtRk(v)},
+            tooltip:{callbacks:{label:c=>" "+c.dataset.label+": "+fmtRk(c.parsed.y)}}},
+          scales:{y:{beginAtZero:true,ticks:{callback:v=>fmtRk(v)},grid:{color:"rgba(213,229,216,.09)"}},
+                  x:{grid:{display:false}}}}});
+    }
+
+    // 6c. Receita, custo e despesa lado a lado
+    if(mesesFin.length){
+      mkChart("ch-re-cascata",{type:"bar",
+        data:{labels:mesesFin.map(lbl),datasets:[
+          {label:"Receita bruta",data:mesesFin.map(m=>linhaDre("Receita Bruta",m)),
+           backgroundColor:"rgba(47,143,110,.85)",borderRadius:4},
+          {label:"Custo de venda",data:mesesFin.map(m=>Math.abs(linhaDre("Custo de Venda",m)||0)),
+           backgroundColor:"rgba(227,181,105,.75)",borderRadius:4},
+          {label:"Despesas operacionais",data:mesesFin.map(m=>Math.abs(linhaDre("Despesas Operacionais",m)||0)),
+           backgroundColor:"rgba(179,58,58,.6)",borderRadius:4}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{position:"bottom",labels:{font:{size:10},boxWidth:12,color:LEGCOL}},
+            barValue:{enabled:false},
+            tooltip:{callbacks:{label:c=>" "+c.dataset.label+": "+fmtRk(c.parsed.y)}}},
+          scales:{y:{beginAtZero:true,ticks:{callback:v=>fmtRk(v)},grid:{color:"rgba(213,229,216,.09)"}},
+                  x:{grid:{display:false}}}}});
+
+      // 6d. Margens sobre a receita
+      const mgB=[],mgO=[],mgL=[];
+      mesesFin.forEach(m=>{
+        const rb=linhaDre("Receita Bruta",m)||0;
+        mgB.push(rb?(linhaDre("Lucro Bruto",m)||0)/rb*100:null);
+        mgO.push(rb?(linhaDre("Resultado Operacional",m)||0)/rb*100:null);
+        mgL.push(rb?(linhaDre("Lucro Líquido",m)||0)/rb*100:null);
+      });
+      mkChart("ch-re-margens",{type:"line",
+        data:{labels:mesesFin.map(lbl),datasets:[
+          {label:"Margem bruta",data:mgB,borderColor:"#2f8f6e",backgroundColor:"rgba(47,143,110,.14)",fill:true,tension:.35,pointRadius:4},
+          {label:"Margem operacional",data:mgO,borderColor:"#7fb0d9",tension:.35,pointRadius:3},
+          {label:"Margem líquida",data:mgL,borderColor:"#e3b569",borderDash:[5,3],tension:.35,pointRadius:3}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{position:"bottom",labels:{font:{size:10},boxWidth:12,color:LEGCOL}},
+            tooltip:{callbacks:{label:c=>" "+c.dataset.label+": "+fmtP(c.parsed.y)}}},
+          scales:{y:{beginAtZero:true,ticks:{callback:v=>v.toFixed(0)+"%"},grid:{color:"rgba(213,229,216,.09)"}},
+                  x:{grid:{display:false}}}}});
+    }
+
+    // 6e-bis. Faturamento mês a mês, 2026 contra 2025 (indicador principal)
+    {
+      const mCom = D.M26.filter(m=>D.fat26[m] && D.fat26[m].bruto!=null);
+      if(mCom.length){
+        const eq25 = m => { const e=m.replace("/26","/25"); return D.fat25[e]?D.fat25[e].bruto:null; };
+        mkChart("ch-re-fatcom",{type:"bar",
+          data:{labels:mCom.map(lbl),datasets:[
+            {label:"2025",data:mCom.map(eq25),backgroundColor:"rgba(213,229,216,.55)",borderRadius:4},
+            {label:"2026",data:mCom.map(m=>D.fat26[m].bruto),backgroundColor:"rgba(47,143,110,.92)",borderRadius:4}
+          ]},
+          options:{responsive:true,maintainAspectRatio:false,
+            plugins:{legend:{position:"bottom",labels:{font:{size:10},boxWidth:12,color:LEGCOL}},
+              barValue:{enabled:true,color:LEGCOL,fontSize:9,minVal:1,fmt:v=>fmtRk(v)},
+              tooltip:{callbacks:{label:c=>" "+c.dataset.label+": "+fmtRk(c.parsed.y)}}},
+            scales:{y:{beginAtZero:true,ticks:{callback:v=>fmtRk(v)},grid:{color:"rgba(213,229,216,.09)"}},
+                    x:{grid:{display:false}}}}});
+
+        // novos clientes, mesma régua do faturamento
+        const eqNov25 = m => { const e=m.replace("/26","/25"); return D.fat25[e]?D.fat25[e].novos:null; };
+        mkChart("ch-re-novos",{type:"bar",
+          data:{labels:mCom.map(lbl),datasets:[
+            {label:"2025",data:mCom.map(eqNov25),backgroundColor:"rgba(213,229,216,.55)",borderRadius:4},
+            {label:"2026",data:mCom.map(m=>D.fat26[m].novos),backgroundColor:"rgba(47,143,110,.92)",borderRadius:4}
+          ]},
+          options:{responsive:true,maintainAspectRatio:false,
+            plugins:{legend:{position:"bottom",labels:{font:{size:10},boxWidth:12,color:LEGCOL}},
+              barValue:{enabled:true,color:LEGCOL,fontSize:9,minVal:1,fmt:v=>String(Math.round(v))},
+              tooltip:{callbacks:{label:c=>" "+c.dataset.label+": "+fmtN(c.parsed.y)+" novos clientes"}}},
+            scales:{y:{beginAtZero:true,grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
+      }
+    }
+
+    // 6e. NPS mês a mês, com faixa de referência
+    {
+      const mesesNps = D.M26.filter((m,i)=>D.nps26.nota[i]!=null);
+      if(mesesNps.length){
+        mkChart("ch-re-nps",{type:"line",
+          data:{labels:mesesNps.map(lbl),datasets:[
+            {label:"NPS",data:mesesNps.map(m=>D.nps26.nota[D.M26.indexOf(m)]),
+             borderColor:"#2f8f6e",backgroundColor:"rgba(47,143,110,.14)",fill:true,tension:.35,pointRadius:5},
+            {label:"Zona de excelência (75%)",data:mesesNps.map(()=>75),
+             borderColor:"#7fd9a0",borderDash:[6,4],borderWidth:1.5,pointRadius:0,fill:false}
+          ]},
+          options:{responsive:true,maintainAspectRatio:false,
+            plugins:{legend:{position:"bottom",labels:{font:{size:10},boxWidth:12,color:LEGCOL,
+              filter:i=>i.text.indexOf("Zona")===0}},
+              tooltip:{callbacks:{label:c=>{
+                const i=D.M26.indexOf(mesesNps[c.dataIndex]);
+                if(c.dataset.label!=="NPS") return " Referência: 75%";
+                return [" NPS: "+fmtP(c.parsed.y),
+                        " "+D.nps26.prom[i]+" promotores · "+D.nps26.det[i]+" detratores",
+                        " "+D.nps26.resp[i]+" respostas"];
+              }}}},
+            scales:{y:{min:0,max:100,ticks:{callback:v=>v+"%"},grid:{color:"rgba(213,229,216,.09)"}},
+                    x:{grid:{display:false}}}}});
+      }
+    }
+
+  }
 
   // ── Gráficos do resumo ────────────────────────────────────────
   const reAllM=D.M26;
   const reFat26=reAllM.map(m=>D.fat26[m]?.bruto||null);
   const reFat25=reAllM.map(m=>h25fat(m)?.bruto||null);
   mkChart("ch-re-fat",{type:"bar",data:{labels:reAllM,datasets:[
-    {label:"2026",data:reFat26,backgroundColor:reAllM.map(m=>ms.includes(m)?"rgba(213,229,216,.9)":"rgba(213,229,216,.28)"),borderRadius:5},
-    {label:"2025",data:reFat25,backgroundColor:"rgba(143,214,171,.5)",borderRadius:5}
+    {label:"2025",data:reFat25,backgroundColor:"rgba(213,229,216,.55)",borderRadius:5},
+    {label:"2026",data:reFat26,backgroundColor:reAllM.map(m=>ms.includes(m)?"rgba(47,143,110,.92)":"rgba(47,143,110,.3)"),borderRadius:5}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:12}}},barValue:{enabled:true,minVal:1,color:LEGCOL,fontSize:10,fmt:v=>fmtRk(v)}},scales:{y:{ticks:{callback:v=>fmtRk(v)},grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
 
   const reLL=D.M26.map((_,i)=>D.dre26["Lucro Líquido"][i]??null);
@@ -2214,6 +2689,13 @@ function toggleFatHist(yr){
   if(window._lastFatTid) renderFat(window._lastFatTid);
 }
 
+/** Rótulos do eixo X: quando há comparativo de anos, mostra só "Jan" em vez de
+ *  "Jan/26" — o ano fica na legenda, e o eixo indica só o mês do par. */
+function labelsEixo_(meses, comComparativo){
+  if(!comComparativo) return meses;
+  return meses.map(m => String(m).split("/")[0]);
+}
+
 function renderFat(tid){
   const s=st(tid), ms=s.months;
   const isJulOnly = ms.length===1 && !!D.julProj && D.julProj.mes && ms[0]===D.julProj.mes;
@@ -2292,12 +2774,15 @@ function renderFat(tid){
   // centralizado quando o comparativo está desligado). O plugin dashedBar desenha
   // as duas partes dentro dessa mesma coluna: sólida até o realizado, contorno
   // tracejado até a projeção.
-  const ds=[{label:"2026",data:padNull2(d26),backgroundColor:"rgba(213,229,216,.85)",borderColor:C26,borderRadius:4,type:"bar",stack:"a"}];
-  if(on) ds.push({label:"2025",data:padNull2(d25),backgroundColor:"rgba(143,214,171,.6)",borderColor:C25,borderRadius:4,type:"bar",stack:"b"});
+  // 2025 entra primeiro (fica à esquerda do par, tom claro); 2026 depois
+  // (à direita, tom escuro). Mesma convenção em todos os comparativos.
+  const ds=[];
+  if(on) ds.push({label:"2025",data:padNull2(d25),backgroundColor:"rgba(213,229,216,.55)",borderColor:C25,borderRadius:4,type:"bar",stack:"b"});
+  ds.push({label:"2026",data:padNull2(d26),backgroundColor:"rgba(47,143,110,.92)",borderColor:C26,borderRadius:4,type:"bar",stack:"a"});
   if(showJul){
     // Nenhum dataset tem valor nessa categoria: a barra inteira é desenhada pelo
     // plugin, centralizada. Assim ela não fica presa à faixa do dataset 2026.
-    ds[0]._parcial = {
+    ds[ds.length-1]._parcial = {
       idx: baseMs.length,                       // posição do mês em andamento
       val: D.julProj.fatParcial,                // até onde já realizou
       proj: D.julProj.fatProjetado,
@@ -2308,7 +2793,7 @@ function renderFat(tid){
       dash: [6,4]
     };
   }
-  mkChart("ch-fat",{type:"bar",data:{labels:labelsJul2,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:showJul,position:"bottom",labels:{font:{size:9},boxWidth:10}},barValue:{enabled:true,color:LEGCOL,fontSize:10,minVal:1,fmt:v=>fmtRk(v)},tooltip:{callbacks:{
+  mkChart("ch-fat",{type:"bar",data:{labels:labelsEixo_(labelsJul2,on),datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:showJul,position:"bottom",labels:{font:{size:9},boxWidth:10}},barValue:{enabled:true,color:LEGCOL,fontSize:10,minVal:1,fmt:v=>fmtRk(v)},tooltip:{callbacks:{
     title:items=>{ if(!items.length) return ""; if(showJul && items[0].label===mesParc) return mesParc+" (em andamento)"; return items[0].label+" · "+items[0].dataset.label; },
     label:c=>{
     // O mês em andamento vive dentro da série 2026, então identificamos pelo rótulo do eixo
@@ -2333,11 +2818,11 @@ function renderFat(tid){
     if(ton && D.julProj.tkTutor25ParcialEquiv!=null)
       dstk.push({label:mesParcAnt+" parcial (equiv.)",data:julCol1(D.julProj.tkTutor25ParcialEquiv),borderColor:C25,backgroundColor:C25,pointRadius:6,pointStyle:"triangle",showLine:false,type:"line"});
   }
-  mkChart("ch-ticket",{type:"line",data:{labels:labelsJul1,datasets:dstk},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:temTicketParc,position:"bottom",labels:{font:{size:9},boxWidth:10}},tooltip:{callbacks:{label:c=>{
+  mkChart("ch-ticket",{type:"line",data:{labels:labelsEixo_(labelsJul1,ton),datasets:dstk},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:temTicketParc,position:"bottom",labels:{font:{size:9},boxWidth:10}},tooltip:{callbacks:{label:c=>{
     if(c.dataset.label===mesParc+" parcial") return [` Ticket médio parcial: ${fmtRk(D.julProj.tkTutorParcial)}`,` Realizado até ${D.julProj.ateData}: ${fmtRk(D.julProj.fatParcial)} / ${D.julProj.tutoresParcial} tutores`];
     if(c.dataset.label===mesParcAnt+" parcial (equiv.)") return [` Ticket médio equivalente ${mesParcAnt}: ${fmtRk(D.julProj.tkTutor25ParcialEquiv)}`,` Base pro-rata: ${fmtRk(D.julProj.fat25ParcialEquiv)} / ${D.julProj.tutores25ParcialEquiv} tutores`];
     return " "+c.dataset.label+": R$ "+(c.parsed.y?Math.round(c.parsed.y).toLocaleString("pt-BR"):"-");
-  }}}},scales:{y:{ticks:{callback:v=>"R$ "+v.toFixed(0)},grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
+  }}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>"R$ "+v.toFixed(0)},grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
   if(ton) document.getElementById("cs-ticket").innerHTML=compSideHTML("2026",tk26,"2025",tk25,v=>"R$ "+(v?Math.round(v).toLocaleString("pt-BR"):"-"));
 
   // Chart: histórico 4 anos com toggles
@@ -2364,7 +2849,7 @@ function renderFat(tid){
     ...(FH[2023]?[{label:"2023",data:h23arr,backgroundColor:"rgba(139,110,47,.35)",borderRadius:3}]:[]),
     ...(FH[2024]?[{label:"2024",data:h24arr,backgroundColor:"rgba(127,176,217,.6)",borderRadius:3}]:[]),
     ...(FH[2025]?[{label:"2025",data:h25arr,backgroundColor:"rgba(143,214,171,.7)",borderRadius:3}]:[]),
-    {label:"2026",data:h26arr,backgroundColor:"rgba(213,229,216,.9)",borderRadius:3}
+    {label:"2026",data:h26arr,backgroundColor:"rgba(47,143,110,.92)",borderRadius:3}
   ];
   mkChart("ch-hist",{type:"bar",data:{labels:m5lbl,datasets:histDs},options:{
     responsive:true,maintainAspectRatio:false,
@@ -2429,17 +2914,17 @@ function renderNovos(tid){
   }
 
   const non=compOn("novos");
-  mkChart("ch-novos",{type:"bar",data:{labels:ms,datasets:[
-    {label:"2026",data:ms.map(m=>D.fat26[m]?.novos||null),backgroundColor:"rgba(213,229,216,.85)",borderRadius:4},
-    ...(non?[{label:"2025",data:ms.map(m=>h25fat(m)?.novos||null),backgroundColor:C25a,borderRadius:4}]:[])
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},barValue:{enabled:true,color:LEGCOL,fontSize:10,fmt:v=>String(v)}},scales:{y:{grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
+  mkChart("ch-novos",{type:"bar",data:{labels:labelsEixo_(ms,non),datasets:[
+    ...(non?[{label:"2025",data:ms.map(m=>h25fat(m)?.novos||null),backgroundColor:"rgba(213,229,216,.55)",borderRadius:4}]:[]),
+    {label:"2026",data:ms.map(m=>D.fat26[m]?.novos||null),backgroundColor:"rgba(47,143,110,.92)",borderRadius:4}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:non,position:"bottom",labels:{font:{size:11},boxWidth:12,padding:8}},barValue:{enabled:true,color:LEGCOL,fontSize:10,fmt:v=>String(v)}},scales:{y:{grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
   if(non) document.getElementById("cs-novos").innerHTML=compSideHTML("2026",n26,"2025",n25,fmtN);
 
   const tnon=compOn("ticknovo");
-  mkChart("ch-ticknovo",{type:"line",data:{labels:ms,datasets:[
+  mkChart("ch-ticknovo",{type:"line",data:{labels:labelsEixo_(ms,tnon),datasets:[
     {label:"Ticket Novo 2026",data:ms.map(m=>D.fat26[m]?.tickNovo||null),borderColor:C26,backgroundColor:"rgba(213,229,216,.16)",fill:true,tension:.35,pointRadius:5},
     ...(tnon?[{label:"Ticket Novo 2025",data:ms.map(m=>h25fat(m)?.tickNovo||null),borderColor:C25,borderDash:[4,3],tension:.35,pointRadius:3}]:[])
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>"R$ "+v.toFixed(0)},grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>"R$ "+v.toFixed(0)},grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
   if(tnon) document.getElementById("cs-ticknovo").innerHTML=compSideHTML("2026",tk26,"2025",tk25,v=>"R$ "+(v?Math.round(v).toLocaleString("pt-BR"):"-"));
 
   // 3º gráfico: participação % mensal dos novos no faturamento
@@ -2485,10 +2970,10 @@ function renderTut(tid){
     `<div class="kpi"><div class="kl">Gênero dominante</div><div class="kv">${pGenF}</div><div class="ks">Tutoras do sexo feminino</div></div>`
   ].join("");
   const ton=compOn("tutores");
-  mkChart("ch-tutores",{type:"bar",data:{labels:ms,datasets:[
-    {label:"2026",data:ms.map(m=>D.fat26[m]?.tutores||null),backgroundColor:"rgba(213,229,216,.85)",borderRadius:4},
-    ...(ton?[{label:"2025",data:ms.map(m=>h25fat(m)?.tutores||null),backgroundColor:C25a,borderRadius:4}]:[])
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},barValue:{enabled:true,color:LEGCOL,fontSize:10,fmt:v=>String(v)}},scales:{y:{grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
+  mkChart("ch-tutores",{type:"bar",data:{labels:labelsEixo_(ms,ton),datasets:[
+    ...(ton?[{label:"2025",data:ms.map(m=>h25fat(m)?.tutores||null),backgroundColor:"rgba(213,229,216,.55)",borderRadius:4}]:[]),
+    {label:"2026",data:ms.map(m=>D.fat26[m]?.tutores||null),backgroundColor:"rgba(47,143,110,.92)",borderRadius:4}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:ton,position:"bottom",labels:{font:{size:11},boxWidth:12,padding:8}},barValue:{enabled:true,color:LEGCOL,fontSize:10,fmt:v=>String(v)}},scales:{y:{grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
   if(ton) document.getElementById("cs-tutores").innerHTML=compSideHTML("2026",t26,"2025",t25,fmtN);
 
   mkChart("ch-seg",{type:"doughnut",data:{labels:D.seg.map(s=>s.s),datasets:[{data:D.seg.map(s=>s.r),backgroundColor:["rgba(213,229,216,.75)","rgba(213,229,216,.9)","rgba(180,150,220,.72)"],borderWidth:2,borderColor:"#fff"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{doughnutPct:{enabled:true,minPct:7},legend:{position:"bottom",labels:{font:{size:12},generateLabels:function(chart){var ds=chart.data.datasets[0];var tot=ds.data.reduce(function(a,b){return a+b;},0);return chart.data.labels.map(function(lbl,i){return {text:lbl+"·"+(ds.data[i]/tot*100).toFixed(1)+"%",fillStyle:ds.backgroundColor[i],fontColor:LEGCOL,strokeStyle:"#fff",lineWidth:1,hidden:false,index:i};});}}},tooltip:{callbacks:{label:function(c){var tot=c.dataset.data.reduce(function(a,b){return a+b;},0);return " "+c.label+": "+(c.parsed/tot*100).toFixed(1)+"%";}}}},cutout:"55%"}});
@@ -2525,10 +3010,10 @@ function renderMix(tid){
   const pon=compOn("pctserv");
   const pct26=ms.map(m=>D.fat26[m]?.pctServ||null);
   const pct25=ms.map(m=>h25fat(m)?.pctServ||null);
-  mkChart("ch-pctserv",{type:"line",data:{labels:ms,datasets:[
+  mkChart("ch-pctserv",{type:"line",data:{labels:labelsEixo_(ms,pon),datasets:[
     {label:"% Serviços 2026",data:pct26,borderColor:C26,backgroundColor:"rgba(213,229,216,.16)",fill:true,tension:.35,pointRadius:5},
     ...(pon?[{label:"% Serviços 2025",data:pct25,borderColor:C25,borderDash:[4,3],tension:.35,pointRadius:3}]:[])
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:70,max:100,ticks:{callback:v=>v+"%"},grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:v=>v+"%"},grid:{color:"rgba(213,229,216,.09)"}},x:{grid:{display:false}}}}});
   if(pon){const avg26=pct26.filter(v=>v!=null).reduce((a,b)=>a+b,0)/(pct26.filter(v=>v!=null).length||1);const avg25=pct25.filter(v=>v!=null).reduce((a,b)=>a+b,0)/(pct25.filter(v=>v!=null).length||1);document.getElementById("cs-pctserv").innerHTML=compSideHTML("2026",avg26,"2025",avg25,v=>fmtP(v));}
 
   const evolServ=ms.map(m=>{const b=D.fat26[m]?.bruto||0,p=D.fat26[m]?.pctServ||0;return Math.round(b*p/100);});
@@ -3004,21 +3489,85 @@ function renderVetFinCharts(){
   }});
 }
 
+// Estado dos filtros da tabela de respostas, por container (2026 e 2025 têm
+// tabelas independentes e cada uma guarda o próprio filtro).
+window.NPS_FILTROS = window.NPS_FILTROS || {};
+
+function setFiltroNps(containerId, campo, valor){
+  const f = window.NPS_FILTROS[containerId] || {cls:"todos", mes:"todos", busca:""};
+  f[campo] = valor;
+  window.NPS_FILTROS[containerId] = f;
+  const ctx = window.NPS_CTX && window.NPS_CTX[containerId];
+  if(ctx) renderNpsRespostas(ctx.containerId, ctx.topicId, ctx.M);
+}
+
 function renderNpsRespostas(containerId, topicId, M){
   const el=document.getElementById(containerId);
   const topicEl=document.getElementById(topicId);
   if(!el) return;
-  const rows=(D.npsRespostas||[]).filter(r=>M.includes(r.mes));
+
+  // guarda o contexto para os filtros conseguirem redesenhar sozinhos
+  window.NPS_CTX = window.NPS_CTX || {};
+  window.NPS_CTX[containerId] = {containerId, topicId, M};
+
+  const base=(D.npsRespostas||[]).filter(r=>M.includes(r.mes));
   if(topicEl) topicEl.textContent="Respostas Individuais: piores notas primeiro"+(M.length?" · "+ctxLabel(M):"");
-  if(!rows.length){ el.innerHTML=`<div style="color:var(--cap);font-size:12px">Sem respostas individuais no período selecionado.</div>`; return; }
+  if(!base.length){ el.innerHTML=`<div style="color:var(--cap);font-size:12px">Sem respostas individuais no período selecionado.</div>`; return; }
+
+  const f = window.NPS_FILTROS[containerId] || {cls:"todos", mes:"todos", busca:""};
+  // meses realmente presentes, na ordem do período
+  const mesesDisp = M.filter(m => base.some(r=>r.mes===m));
+
+  let rows = base.slice();
+  if(f.cls !== "todos") rows = rows.filter(r=>r.cls===f.cls);
+  if(f.mes !== "todos") rows = rows.filter(r=>r.mes===f.mes);
+  if(f.busca){
+    const q = f.busca.toLowerCase();
+    rows = rows.filter(r =>
+      String(r.nome||"").toLowerCase().includes(q) ||
+      String(r.bairro||"").toLowerCase().includes(q) ||
+      String(r.coment||"").toLowerCase().includes(q));
+  }
   // pior nota primeiro; empate desempata pela mais recente
   rows.sort((a,b)=> a.nota-b.nota || (b.mes+b.data).localeCompare(a.mes+a.data));
+
   const clsInfo={
     "Detrator":{bg:"#f2d9d6",color:"#7a2e28"},
     "Passivo":{bg:"#f2e6cf",color:"#6b4310"},
     "Promotor":{bg:"#d9ecdc",color:"#1f4a2e"}
   };
-  let h=`<div class="tw"><table><thead><tr><th>Mês</th><th>Data</th><th>Tutor</th><th>Bairro</th><th class='r'>Nota</th><th>Classificação</th><th>Comentário</th></tr></thead><tbody>`;
+
+  // ---- barra de filtros ----
+  const cont = base.reduce((a,r)=>{ a[r.cls]=(a[r.cls]||0)+1; return a; },{});
+  const chip = (label, campo, valor, ativo, extra) =>
+    `<button onclick="setFiltroNps('${containerId}','${campo}','${String(valor).replace(/'/g,"\\'")}')" `+
+    `class="npsf${ativo?' on':''}">${label}${extra!=null?` <span style="opacity:.65">${extra}</span>`:''}</button>`;
+
+  let h = `<div class="npsfbar">`;
+  h += `<span class="npsflabel">Classificação</span>`;
+  h += chip("Todos","cls","todos", f.cls==="todos", base.length);
+  ["Detrator","Passivo","Promotor"].forEach(c=>{
+    if(cont[c]) h += chip(c,"cls",c, f.cls===c, cont[c]);
+  });
+  if(mesesDisp.length > 1){
+    h += `<span class="npsflabel" style="margin-left:14px">Mês</span>`;
+    h += chip("Todos","mes","todos", f.mes==="todos");
+    mesesDisp.forEach(m=>{ h += chip(m,"mes",m, f.mes===m, base.filter(r=>r.mes===m).length); });
+  }
+  h += `<input class="npsfbusca" type="search" placeholder="Buscar tutor, bairro ou comentário"
+         value="${(f.busca||"").replace(/"/g,'&quot;')}"
+         oninput="setFiltroNps('${containerId}','busca',this.value)">`;
+  h += `</div>`;
+
+  if(!rows.length){
+    el.innerHTML = h + `<div style="color:var(--cap);font-size:12px;padding:10px 2px">Nenhuma resposta com esses filtros.</div>`;
+    return;
+  }
+  if(rows.length !== base.length){
+    h += `<div style="color:var(--cap);font-size:11.5px;margin:-4px 0 8px">Mostrando ${rows.length} de ${base.length} respostas.</div>`;
+  }
+
+  h+=`<div class="tw"><table><thead><tr><th>Mês</th><th>Data</th><th>Tutor</th><th>Bairro</th><th class='r'>Nota</th><th>Classificação</th><th>Comentário</th></tr></thead><tbody>`;
   rows.forEach(r=>{
     const ci=clsInfo[r.cls]||{bg:"#eee",color:"#333"};
     const rowCls=r.cls==="Detrator"?"warn-row":"";
@@ -3534,8 +4083,30 @@ function remapDados_(resp){
   }
 
   // ---- DRE (já vem no formato certo: {label:[valores]}) ----
-  out.dre26 = dados.dre2026.linhas;
-  out.dre25 = dados.dre2025.linhas;
+  // A estrutura do DRE agora espelha a planilha "Fechamento Cats Indoor" (76
+  // linhas). Os nomes mudaram em alguns casos ("Receita Líquida" -> "Receita
+  // líquida"), então normalizamos as chaves e mantemos apelidos para os rótulos
+  // que o dashboard já referenciava.
+  const APELIDOS_DRE = {
+    "Receita Líquida": "Receita líquida",
+    "Veterinários Rotina e Plantão": "Veterinários Terceirizados Rotina e Plantão",
+    "Exames Lab. Terceirizados": "Exames - Laboratórios Terceirizados",
+    "Fornecedores de Produtos": "Fornecedores de produtos",
+    "Serviços Terceirizados": "Serviços de Tercerizados",
+    "Despesas Administrativas": "Administrativas",
+    "Comissões de Veterinários": "Veterinários Terceirizados",
+    "Despesas Financeiras": "Financeiras"
+  };
+  function comApelidos_(linhas){
+    const out = Object.assign({}, linhas);
+    Object.keys(APELIDOS_DRE).forEach(velho=>{
+      const novo = APELIDOS_DRE[velho];
+      if(out[velho]===undefined && out[novo]!==undefined) out[velho] = out[novo];
+    });
+    return out;
+  }
+  out.dre26 = comApelidos_(dados.dre2026.linhas);
+  out.dre25 = comApelidos_(dados.dre2025.linhas);
 
   // ---- Comercial ----
   const comChave = {'Faturamento Bruto':'bruto','Faturamento Líquido':'liq','Nº de Vendas':'vendas',
