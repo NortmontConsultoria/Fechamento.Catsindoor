@@ -2078,46 +2078,81 @@ function renderDFC(tid){
      sintetico   : aparece no modo Sintético
   ──────────────────────────────────────────────────────────────────────── */
   const STRUCT = [
-    {l:"(+) RECEITA BRUTA",            k:"Receita Bruta",                  tipo:"result", togglesGroup:"rb"},
-    {l:"Vendas",                         k:"Vendas",                         tipo:"sub",    memberOf:["rb"]},
-    {l:"Adiantamento de clientes",       k:"Adiantamento de clientes",       tipo:"sub",    memberOf:["rb"]},
-    {l:"Devoluções",                     k:"Devoluções",                     tipo:"sub",    memberOf:["rb"]},
-    {l:"Impostos e Deduções",            k:"Impostos e Deduções",            tipo:"sub",    memberOf:["rb"], togglesGroup:"imp"},
-    {l:"↳ Taxa operadora cartão",       k:"Taxa operadora cartão",          tipo:"sub2",   memberOf:["rb","imp"]},
-    {l:"↳ ISS",                         k:"ISS",                            tipo:"sub2",   memberOf:["rb","imp"]},
-    {l:"↳ ICMS",                        k:"ICMS",                           tipo:"sub2",   memberOf:["rb","imp"]},
-    {l:"↳ PIS",                         k:"PIS",                            tipo:"sub2",   memberOf:["rb","imp"]},
-    {l:"(=) RECEITA LÍQUIDA",          k:"Receita Líquida",                tipo:"result", sintetico:true},
-    {l:"(−) CUSTO DE VENDA",           k:"Custo de Venda",                 tipo:"group",  togglesGroup:"cv"},
-    {l:"Exames Lab. Terceirizados",     k:"Exames Lab. Terceirizados",      tipo:"sub",    memberOf:["cv"]},
-    {l:"Fornecedores de Produtos",      k:"Fornecedores de Produtos",       tipo:"sub",    memberOf:["cv"]},
-    {l:"Insumos",                        k:"Insumos",                        tipo:"sub",    memberOf:["cv"]},
-    {l:"Serviços de Cremação",          k:"Serviços de Cremação",           tipo:"sub",    memberOf:["cv"]},
-    {l:"Serviços Terceirizados",        k:"Serviços Terceirizados",         tipo:"sub",    memberOf:["cv"], togglesGroup:"sv"},
-    {l:"↳ Veterinários Terceirizados", k:"Veterinários Terceirizados",     tipo:"sub2",   memberOf:["cv","sv"]},
-    {l:"↳ Rotina e Plantão",           k:"Veterinários Rotina e Plantão",  tipo:"sub2",   memberOf:["cv","sv"]},
-    {l:"(=) LUCRO BRUTO",              k:"Lucro Bruto",                    tipo:"result", sintetico:true},
-    {l:"(−) DESPESAS OPERACIONAIS",    k:"Despesas Operacionais",          tipo:"group",  togglesGroup:"do", sintetico:true},
-    {l:"Administrativas",               k:"Administrativas",                tipo:"sub",    memberOf:["do"], togglesGroup:"adm"},
-    {l:"↳ Aluguel",                    k:"Aluguel",                        tipo:"sub2",   memberOf:["do","adm"]},
-    {l:"↳ Energia elétrica",           k:"Energia elétrica",               tipo:"sub2",   memberOf:["do","adm"]},
-    {l:"↳ Informática",                k:"Informática",                    tipo:"sub2",   memberOf:["do","adm"]},
-    {l:"↳ Outras Adm.",                k:"Outras Adm.",                    tipo:"sub2",   memberOf:["do","adm"]},
-    {l:"Pessoal",                       k:"Pessoal",                        tipo:"sub",    memberOf:["do"], togglesGroup:"pes"},
-    {l:"↳ Salários e Prolabore",       k:"Salários e Prolabore",           tipo:"sub2",   memberOf:["do","pes"]},
-    {l:"↳ FGTS e Encargos",            k:"FGTS e Encargos",                tipo:"sub2",   memberOf:["do","pes"]},
-    {l:"↳ Benefícios e Outros",        k:"Benefícios e Outros",            tipo:"sub2",   memberOf:["do","pes"]},
-    {l:"Marketing e Vendas",            k:"Marketing e Vendas",             tipo:"sub",    memberOf:["do"]},
-    {l:"Despesas Financeiras",          k:"Despesas Financeiras",           tipo:"sub",    memberOf:["do"]},
-    {l:"(=) RESULTADO OPERACIONAL",    k:"Resultado Operacional",          tipo:"result", sintetico:true},
-    {l:"(−) INVEST. E PROVISÕES",      k:"Investimentos e Provisões",      tipo:"group",  togglesGroup:"inv"},
-    {l:"Empréstimos",                   k:"Empréstimos",                    tipo:"sub",    memberOf:["inv"]},
-    {l:"Invest. em Equipamento",        k:"Invest. em Equipamento",         tipo:"sub",    memberOf:["inv"]},
-    {l:"Investimentos Gerais",          k:"Investimentos Gerais",           tipo:"sub",    memberOf:["inv"]},
-    {l:"Juros e Encargos",              k:"Juros e Encargos",               tipo:"sub",    memberOf:["inv"]},
-    {l:"(=) LAIR",                     k:"LAIR",                           tipo:"result", sintetico:true},
-    {l:"(−) IRPJ / CSLL",             k:"IRPJ / CSLL",                    tipo:"sub",    memberOf:["irpj"]},
-    {l:"(=) LUCRO LÍQUIDO",            k:"Lucro Líquido",                  tipo:"result", sintetico:true}
+    {l:"(+) RECEITA BRUTA", k:"Receita Bruta", tipo:"result", sintetico:true, togglesGroup:"rb"},
+    {l:"Adiantamento de clientes", k:"Adiantamento de clientes", tipo:"sub", memberOf:["rb"]},
+    {l:"Vendas", k:"Vendas", tipo:"sub", memberOf:["rb"]},
+    {l:"Vendas em aberto", k:"Vendas em aberto", tipo:"sub", memberOf:["rb"]},
+    {l:"Devoluções", k:"Devoluções", tipo:"sub", memberOf:["rb"]},
+    {l:"(−) IMPOSTOS E DEDUÇÕES", k:"Impostos e Deduções", tipo:"group", togglesGroup:"imp", sintetico:true},
+    {l:"Taxa operadora cartão", k:"Taxa operadora cartão", tipo:"sub", memberOf:["imp"]},
+    {l:"Impostos", k:"Impostos", tipo:"sub", memberOf:["imp"]},
+    {l:"Taxas e contribuições", k:"Taxas e contribuições", tipo:"sub", memberOf:["imp"]},
+    {l:"COFINS", k:"COFINS", tipo:"sub", memberOf:["imp"]},
+    {l:"ICMS", k:"ICMS", tipo:"sub", memberOf:["imp"]},
+    {l:"ISS", k:"ISS", tipo:"sub", memberOf:["imp"]},
+    {l:"PIS", k:"PIS", tipo:"sub", memberOf:["imp"]},
+    {l:"(=) RECEITA LÍQUIDA", k:"Receita líquida", tipo:"result", sintetico:true},
+    {l:"(−) CUSTO DE VENDA", k:"Custo de Venda", tipo:"group", togglesGroup:"cv", sintetico:true},
+    {l:"Exames - Laboratórios Terceirizados", k:"Exames - Laboratórios Terceirizados", tipo:"sub", memberOf:["cv"]},
+    {l:"Fornecedores de produtos", k:"Fornecedores de produtos", tipo:"sub", memberOf:["cv"]},
+    {l:"Insumos", k:"Insumos", tipo:"sub", memberOf:["cv"]},
+    {l:"Serviços de Cremação", k:"Serviços de Cremação", tipo:"sub", memberOf:["cv"]},
+    {l:"Serviços de Tercerizados", k:"Serviços de Tercerizados", tipo:"sub", memberOf:["cv"]},
+    {l:"Veterinários Terceirizados", k:"Veterinários Terceirizados", tipo:"sub", memberOf:["cv"]},
+    {l:"Veterinários Terceirizados Rotina e Plantão", k:"Veterinários Terceirizados Rotina e Plantão", tipo:"sub", memberOf:["cv"]},
+    {l:"(=) LUCRO BRUTO", k:"Lucro Bruto", tipo:"result", sintetico:true},
+    {l:"(−) DESPESAS OPERACIONAIS", k:"Despesas Operacionais", tipo:"group", togglesGroup:"do", sintetico:true},
+    {l:"Administrativas", k:"Administrativas", tipo:"sub", memberOf:["do"], togglesGroup:"adm", sintetico:true},
+    {l:"↳ Água", k:"Água", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Aluguel", k:"Aluguel", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Aluguel de Equipamentos", k:"Aluguel de Equipamentos", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Ambiental", k:"Ambiental", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Cartão de Crédito Empresarial", k:"Cartão de Crédito Empresarial", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Combustível", k:"Combustível", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ DETRAN", k:"DETRAN", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Energia elétrica", k:"Energia elétrica", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Informática", k:"Informática", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Manutenção de Equipamentos", k:"Manutenção de Equipamentos", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Material de Escritório", k:"Material de Escritório", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Segurança", k:"Segurança", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Seguros", k:"Seguros", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Supermercado", k:"Supermercado", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"↳ Telefone e Internet", k:"Telefone e Internet", tipo:"sub2", memberOf:["do","adm"]},
+    {l:"Pessoal", k:"Pessoal", tipo:"sub", memberOf:["do"], togglesGroup:"pes", sintetico:true},
+    {l:"↳ Adiantamento de salários", k:"Adiantamento de salários", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ Benefícios", k:"Benefícios", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ Bolsa Estagiários", k:"Bolsa Estagiários", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ Cursos e treinamentos", k:"Cursos e treinamentos", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ Encargos Trabalhistas", k:"Encargos Trabalhistas", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ Exames admissionais e demissionais", k:"Exames admissionais e demissionais", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ FGTS", k:"FGTS", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ Férias", k:"Férias", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ Gratificações", k:"Gratificações", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ Multa", k:"Multa", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ Profissionais terceirizados", k:"Profissionais terceirizados", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ Prolabore", k:"Prolabore", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ Rescisões", k:"Rescisões", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ Salários", k:"Salários", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"↳ 13 Salário", k:"13 Salário", tipo:"sub2", memberOf:["do","pes"]},
+    {l:"Marketing e Vendas", k:"Marketing e Vendas", tipo:"sub", memberOf:["do"], togglesGroup:"mkt", sintetico:true},
+    {l:"↳ Serviços de Marketing", k:"Serviços de Marketing", tipo:"sub2", memberOf:["do","mkt"]},
+    {l:"↳ Publicidade", k:"Publicidade", tipo:"sub2", memberOf:["do","mkt"]},
+    {l:"↳ Outras Despesas com Marketing e Vendas", k:"Outras Despesas com Marketing e Vendas", tipo:"sub2", memberOf:["do","mkt"]},
+    {l:"Financeiras", k:"Financeiras", tipo:"sub", memberOf:["do"], togglesGroup:"fin", sintetico:true},
+    {l:"↳ Juros", k:"Juros", tipo:"sub2", memberOf:["do","fin"]},
+    {l:"↳ Taxas e tarifas bancárias", k:"Taxas e tarifas bancárias", tipo:"sub2", memberOf:["do","fin"]},
+    {l:"(=) RESULTADO OPERACIONAL", k:"Resultado Operacional", tipo:"result", sintetico:true},
+    {l:"Integralização de Capital", k:"Integralização de Capital", tipo:"sub"},
+    {l:"(−) INVEST. E PROVISÕES", k:"Investimentos e Provisões", tipo:"group", togglesGroup:"ip", sintetico:true, memberOf:["do"]},
+    {l:"Aplicações e Provisões", k:"Aplicações e Provisões", tipo:"sub", memberOf:["ip"]},
+    {l:"Empréstimos e Financiamentos", k:"Empréstimos e Financiamentos", tipo:"sub", memberOf:["ip"]},
+    {l:"Investimentos em Equipamento", k:"Investimentos em Equipamento", tipo:"sub", memberOf:["ip"]},
+    {l:"Investimentos Gerais", k:"Investimentos Gerais", tipo:"sub", memberOf:["ip"]},
+    {l:"Juros e encargos sobre empréstimos", k:"Juros e encargos sobre empréstimos", tipo:"sub", memberOf:["ip"]},
+    {l:"(=) LAIR", k:"LAIR", tipo:"result", sintetico:true},
+    {l:"IRPJ", k:"IRPJ", tipo:"sub"},
+    {l:"CSLL", k:"CSLL", tipo:"sub"},
+    {l:"(=) LUCRO LÍQUIDO", k:"Lucro Líquido", tipo:"result", sintetico:true}
   ];
 
   /* Sempre renderizar todas as linhas; Sintético/Analítico controla via CSS */
@@ -4094,6 +4129,9 @@ function remapDados_(resp){
   // linhas). Os nomes mudaram em alguns casos ("Receita Líquida" -> "Receita
   // líquida"), então normalizamos as chaves e mantemos apelidos para os rótulos
   // que o dashboard já referenciava.
+  // Rótulos que o dashboard já usava, mapeados para a estrutura nova do DRE.
+  // Valor string = a mesma linha com outro nome.
+  // Valor array  = a linha antiga era um agregado de várias linhas do sistema.
   const APELIDOS_DRE = {
     "Receita Líquida": "Receita líquida",
     "Veterinários Rotina e Plantão": "Veterinários Terceirizados Rotina e Plantão",
@@ -4102,14 +4140,45 @@ function remapDados_(resp){
     "Serviços Terceirizados": "Serviços de Tercerizados",
     "Despesas Administrativas": "Administrativas",
     "Comissões de Veterinários": "Veterinários Terceirizados",
-    "Despesas Financeiras": "Financeiras"
+    "Despesas Financeiras": "Financeiras",
+    "Empréstimos": "Empréstimos e Financiamentos",
+    "Invest. em Equipamento": "Investimentos em Equipamento",
+    "Juros e Encargos": "Juros e encargos sobre empréstimos",
+    "Salários e Prolabore": ["Salários","Prolabore","Adiantamento de salários","13 Salário"],
+    "FGTS e Encargos": ["FGTS","Encargos Trabalhistas","Férias","Rescisões"],
+    "Benefícios e Outros": ["Benefícios","Bolsa Estagiários","Cursos e treinamentos",
+                            "Exames admissionais e demissionais","Gratificações","Multa"],
+    "IRPJ / CSLL": ["IRPJ","CSLL"]
   };
+
+  // "Outras Adm." é o resto das Administrativas depois de tirar o que o DFC
+  // já detalha em linha própria.
+  const ADM_DETALHADAS = ["Aluguel","Energia elétrica","Informática"];
+
   function comApelidos_(linhas){
     const out = Object.assign({}, linhas);
+    const somar = (chaves)=>{
+      let algum = false, res = null;
+      chaves.forEach(k=>{
+        const arr = out[k];
+        if(!arr) return;
+        if(!res) res = arr.map(()=>null);
+        arr.forEach((v,i)=>{ if(v!=null && v!==""){ res[i] = (res[i]||0) + v; algum = true; } });
+      });
+      return algum ? res : undefined;
+    };
     Object.keys(APELIDOS_DRE).forEach(velho=>{
-      const novo = APELIDOS_DRE[velho];
-      if(out[velho]===undefined && out[novo]!==undefined) out[velho] = out[novo];
+      if(out[velho]!==undefined) return;
+      const alvo = APELIDOS_DRE[velho];
+      const v = Array.isArray(alvo) ? somar(alvo) : out[alvo];
+      if(v!==undefined) out[velho] = v;
     });
+    // resto das administrativas
+    if(out["Outras Adm."]===undefined && out["Administrativas"]){
+      const det = somar(ADM_DETALHADAS) || out["Administrativas"].map(()=>0);
+      out["Outras Adm."] = out["Administrativas"].map((v,i)=>
+        (v==null||v==="") ? null : v - (det[i]||0));
+    }
     return out;
   }
   out.dre26 = comApelidos_(dados.dre2026.linhas);
