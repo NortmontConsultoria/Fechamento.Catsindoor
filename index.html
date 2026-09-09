@@ -4241,9 +4241,25 @@ function remapDados_(resp){
 
 async function buscarDadosAoVivo_(){
   const resp = await fetch(APPS_SCRIPT_URL + "?action=getTudo");
-  if(!resp.ok) throw new Error("HTTP "+resp.status);
-  const json = await resp.json();
-  if(!json || json.ok===false) throw new Error((json && json.erro) || "resposta sem sucesso");
+  if(!resp.ok) throw new Error("HTTP "+resp.status+" ao chamar o Apps Script");
+
+  // O Apps Script devolve HTML (e não JSON) quando a implantação está sem
+  // autorização ou foi republicada sem permissão. Ler como texto primeiro
+  // permite dizer o que aconteceu, em vez de um "resposta sem sucesso" genérico.
+  const texto = await resp.text();
+  let json;
+  try{
+    json = JSON.parse(texto);
+  }catch(e){
+    const pista = /accounts\.google\.com|autoriza|authoriz|sign in|login/i.test(texto)
+      ? "o Apps Script está pedindo autorização"
+      : "o Apps Script respondeu algo que não é JSON";
+    throw new Error(pista + ". Reabra o editor do Apps Script, execute getTudo uma vez para autorizar e republique em Implantar > Gerenciar implantações > Nova versão.");
+  }
+  if(!json) throw new Error("o Apps Script devolveu uma resposta vazia.");
+  if(json.ok === false){
+    throw new Error(json.erro || "o Apps Script retornou ok:false sem detalhar o motivo. Abra a URL do Apps Script no navegador para ver a resposta completa.");
+  }
   return remapDados_(json);
 }
 
