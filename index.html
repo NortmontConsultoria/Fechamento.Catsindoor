@@ -4038,6 +4038,13 @@ function updateFooterStatus(){
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz9tFWEvzp3R22QpgKPvBSKQiC6qr9gvm-DinRX3TNeuk4xSinUyDJHajXXp5CQAxfxrQ/exec";
 
 function remapDados_(resp){
+  // Uma aba que falhou chega como null. Sem esta proteção, o dashboard inteiro
+  // quebra por causa de uma aba secundária ausente.
+  const VAZIO = {linhas:[], blocos:{}, porMes:{}, meses:[], parametros:{}, metasAnuais:{},
+                 meses2026:[], meses2025:[]};
+  if(resp && resp.dados){
+    Object.keys(resp.dados).forEach(k=>{ if(!resp.dados[k]) resp.dados[k] = Object.assign({}, VAZIO); });
+  }
   const dados = resp.dados;
   const out = {};
 
